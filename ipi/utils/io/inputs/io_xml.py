@@ -7,6 +7,10 @@ files with in the XML format.
 # See the "licenses" directory for full license information.
 
 
+from builtins import str
+from builtins import map
+from builtins import range
+from builtins import object
 from xml.sax import parseString, parse
 from xml.sax.handler import ContentHandler
 import string
@@ -101,7 +105,7 @@ class xml_handler(ContentHandler):
         """
 
         # creates a new node
-        newnode = xml_node(attribs=dict((k, attrs[k]) for k in attrs.keys()), name=name, fields=[])
+        newnode = xml_node(attribs=dict((k, attrs[k]) for k in list(attrs.keys())), name=name, fields=[])
         # adds it to the list of open nodes
         self.open.append(newnode)
         # adds it to the list of fields of the parent tag
@@ -202,7 +206,7 @@ def xml_write(xml, name="", indent="", text=""):
     rstr = ""
     if not name == "":
         rstr = indent + "<" + name;
-        for a, v in xml.attribs.iteritems():
+        for a, v in xml.attribs.items():
             rstr += " " + a + "='" + v + "'"
         rstr += ">"
 
@@ -426,7 +430,7 @@ def read_dict(data, delims="{}", split=",", key_split=":", strip=" \n\t"):
 
     rdict = {}
     for s in rlist:
-        rtuple = map(mystrip, s.split(key_split))
+        rtuple = list(map(mystrip, s.split(key_split)))
         if not len(rtuple) == 2:
             raise ValueError("Format for a key:value format is wrong for item " + s)
         rdict[rtuple[0]] = rtuple[1]
@@ -440,7 +444,8 @@ readtype_funcs = {
     float: read_float,
     int: read_int,
     bool: read_bool,
-    str: string.strip,
+    str: lambda s : str.strip(str(s)),
+    #str: string.strip,
     tuple: read_tuple,
     np.uint: read_int
 }
@@ -572,7 +577,8 @@ writetype_funcs = {
     dict: write_dict,
     int: str,
     bool: write_bool,
-    str: string.strip,
+    #str: string.strip,
+    str: lambda s : str.strip(str(s)),
     tuple: write_tuple,
     np.uint: str
 }

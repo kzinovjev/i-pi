@@ -2,12 +2,15 @@
 
 Used for implementing the minimum image convention.
 """
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import range
+from past.utils import old_div
 import numpy as np
 
 from ipi.utils.depend import *
@@ -97,7 +100,7 @@ class Cell(dobject):
         """
 
         s = dstrip(pos).copy()
-        s.shape = (len(pos) / 3, 3)
+        s.shape = (old_div(len(pos), 3), 3)
 
         s = np.dot(dstrip(self.ih), s.T)
         s = s - np.round(s)

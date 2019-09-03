@@ -5,12 +5,15 @@ TODO
 
 Algorithms implemented by Michele Ceriotti and Benjamin Helfrecht, 2015
 """
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import object
+from past.utils import old_div
 import numpy as np
 import time
 
@@ -161,7 +164,7 @@ class LineMapper(object):
 
     def set_dir(self, x0, mdir):
         self.x0 = x0.copy()
-        self.d = mdir.copy() / np.sqrt(np.dot(mdir.flatten(), mdir.flatten()))
+        self.d = old_div(mdir.copy(), np.sqrt(np.dot(mdir.flatten(), mdir.flatten())))
         if self.x0.shape != self.d.shape:
             raise ValueError("Incompatible shape of initial value and displacement direction")
 
@@ -290,7 +293,7 @@ class DummyOptimizer(dobject):
         else:
             fmax = np.amax(np.absolute(self.forces.f))
 
-        e = np.absolute((fx - u0) / self.beads.natoms)
+        e = np.absolute(old_div((fx - u0), self.beads.natoms))
         info("@GEOP", verbosity.medium)
         self.tolerances["position"]
         info("   Current energy             %e" % (fx))
@@ -305,7 +308,7 @@ class DummyOptimizer(dobject):
                              "to reach such accuracy with your force evaluation"
                              " code (client).")
 
-        if (np.absolute((fx - u0) / self.beads.natoms) <= self.tolerances["energy"])   \
+        if (np.absolute(old_div((fx - u0), self.beads.natoms)) <= self.tolerances["energy"])   \
                 and (fmax <= self.tolerances["force"])  \
                 and (x <= self.tolerances["position"]):
             self.converged = True
@@ -340,7 +343,7 @@ class BFGSOptimizer(DummyOptimizer):
 
         if step == 0:
             info(" @GEOP: Initializing BFGS", verbosity.debug)
-            self.d += dstrip(self.forces.f) / np.sqrt(np.dot(self.forces.f.flatten(), self.forces.f.flatten()))
+            self.d += old_div(dstrip(self.forces.f), np.sqrt(np.dot(self.forces.f.flatten(), self.forces.f.flatten())))
             if len(self.fixatoms) > 0:
                 for dqb in self.d:
                     dqb[self.fixatoms * 3] = 0.0
@@ -477,7 +480,7 @@ class LBFGSOptimizer(DummyOptimizer):
 
         if step == 0:
             info(" @GEOP: Initializing L-BFGS", verbosity.debug)
-            self.d += dstrip(self.forces.f) / np.sqrt(np.dot(self.forces.f.flatten(), self.forces.f.flatten()))
+            self.d += old_div(dstrip(self.forces.f), np.sqrt(np.dot(self.forces.f.flatten(), self.forces.f.flatten())))
 
         self.old_x[:] = self.beads.q
         self.old_u[:] = self.forces.pot
@@ -542,7 +545,7 @@ class SDOptimizer(DummyOptimizer):
         dq1 = dstrip(self.old_f)
 
         # Move direction for steepest descent
-        dq1_unit = dq1 / np.sqrt(np.dot(dq1.flatten(), dq1.flatten()))
+        dq1_unit = old_div(dq1, np.sqrt(np.dot(dq1.flatten(), dq1.flatten())))
         info(" @GEOP: Determined SD direction", verbosity.debug)
 
         # Set position and direction inside the mapper
@@ -608,7 +611,7 @@ class CGOptimizer(DummyOptimizer):
             gradf1 = dq1 = dstrip(self.forces.f)
 
             # Move direction for 1st conjugate gradient step
-            dq1_unit = dq1 / np.sqrt(np.dot(gradf1.flatten(), gradf1.flatten()))
+            dq1_unit = old_div(dq1, np.sqrt(np.dot(gradf1.flatten(), gradf1.flatten())))
             info(" @GEOP: Determined SD direction", verbosity.debug)
 
         else:
@@ -616,9 +619,9 @@ class CGOptimizer(DummyOptimizer):
             gradf0 = self.old_f
             dq0 = self.d
             gradf1 = dstrip(self.forces.f)
-            beta = np.dot((gradf1.flatten() - gradf0.flatten()), gradf1.flatten()) / (np.dot(gradf0.flatten(), gradf0.flatten()))
+            beta = old_div(np.dot((gradf1.flatten() - gradf0.flatten()), gradf1.flatten()), (np.dot(gradf0.flatten(), gradf0.flatten())))
             dq1 = gradf1 + max(0.0, beta) * dq0
-            dq1_unit = dq1 / np.sqrt(np.dot(dq1.flatten(), dq1.flatten()))
+            dq1_unit = old_div(dq1, np.sqrt(np.dot(dq1.flatten(), dq1.flatten())))
             info(" @GEOP: Determined CG direction", verbosity.debug)
 
         # Store force and direction for next CG step

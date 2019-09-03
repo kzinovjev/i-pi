@@ -2,6 +2,9 @@
 # pylint: disable=C0111,W0621,R0914,C0301
 # +easier to find important problems
 
+from builtins import zip
+from builtins import str
+from builtins import range
 import re
 import tempfile as tmp
 import filecmp
@@ -71,7 +74,7 @@ def create_random_xyz_traj_to_read(request):
     if check_comment:
         genh = np.array(check_comment.group(1).split()[:9], float).reshape((3, 3))
         invgenh = np.linalg.inv(genh)
-        for _ui in xrange(natoms * frames):
+        for _ui in range(natoms * frames):
             _uu = np.array([xyz[3 * _ui], xyz[3 * _ui + 1], xyz[3 * _ui + 2]])
             _us = np.dot(_uu, invgenh)
             _uu = np.dot(expected_cell, _us)
@@ -87,7 +90,7 @@ def test_read_xyz(create_random_xyz_traj_to_read):
     filedesc, xyz, atom_names, \
         natoms, frames, comment, expected_cell, precision = create_random_xyz_traj_to_read
 
-    for _fr in xrange(frames):
+    for _fr in range(frames):
 
         tcomment, tcell, tqatoms, tnames, tmasses = io_xyz.read_xyz(filedesc)
 
@@ -152,7 +155,7 @@ def create_random_xyz_traj_to_write(request):
     cell_list = []
     atoms_list = []
 
-    for _fr in xrange(frames):
+    for _fr in range(frames):
         cell = Cell(expected_cell)
         atoms = Atoms(natoms)
         atoms.q[:] = xyz[_fr * natoms * 3:(_fr + 1) * natoms * 3]

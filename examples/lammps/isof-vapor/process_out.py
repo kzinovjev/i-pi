@@ -10,7 +10,10 @@ fourth column : 1000ln(<exp>)
 5-7th column : for the other type of isotope substitution
 """
 from __future__ import print_function
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
 import numpy as np
 from math import log
 
@@ -37,8 +40,8 @@ for a in range(asize):
             out[count][2] = table[a][9]
             out[count][5] = table[a][12]
         else:
-            out[count][2] = out[count - 1][2] * count / (count + 1) + table[a][9] / (count + 1)
-            out[count][5] = out[count - 1][5] * count / (count + 1) + table[a][12] / (count + 1)
+            out[count][2] = old_div(out[count - 1][2] * count, (count + 1)) + old_div(table[a][9], (count + 1))
+            out[count][5] = old_div(out[count - 1][5] * count, (count + 1)) + old_div(table[a][12], (count + 1))
         out[count][3] = 1000.0 * log(out[count][2])
         out[count][6] = 1000.0 * log(out[count][5])
         count += 1

@@ -17,7 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http.//www.gnu.org/licenses/>.
 """
 from __future__ import print_function
+from __future__ import division
 
+from builtins import map
+from builtins import range
+from past.utils import old_div
 __all__ = ['DynMatrixMover']
 
 import numpy as np
@@ -78,7 +82,7 @@ class DynMatrixMover(Motion):
         if(self.beads.nbeads > 1):
             raise ValueError("Calculation not possible for number of beads greater than one.")
 
-        self.ism = 1 / np.sqrt(dstrip(self.beads.m3[-1]))
+        self.ism = old_div(1, np.sqrt(dstrip(self.beads.m3[-1])))
         self.m = dstrip(self.beads.m)
         self.phcalc.bind(self)
 
@@ -116,7 +120,7 @@ class DynMatrixMover(Motion):
         outfile = self.output_maker.get_output(self.prefix + '.hess', 'w')
         print("# Hessian matrix (atomic units)" + wstr, file=outfile)
         for i in range(3 * self.beads.natoms):
-            print(' '.join(map(str, dmatx[i] / (self.ism[i] * self.ism))), file=outfile)
+            print(' '.join(map(str, old_div(dmatx[i], (self.ism[i] * self.ism)))), file=outfile)
         outfile.close()
 
         # eigsys=np.linalg.eigh(dmatx)
@@ -152,7 +156,7 @@ class DynMatrixMover(Motion):
 
         if(self.asr == "crystal"):
             # Computes the centre of mass.
-            com = np.dot(np.transpose(self.beads.q.reshape((self.beads.natoms, 3))), self.m) / self.m.sum()
+            com = old_div(np.dot(np.transpose(self.beads.q.reshape((self.beads.natoms, 3))), self.m), self.m.sum())
             qminuscom = self.beads.q.reshape((self.beads.natoms, 3)) - com
             # Computes the moment of inertia tensor.
             moi = np.zeros((3, 3), float)
@@ -164,13 +168,13 @@ class DynMatrixMover(Motion):
             D = np.zeros((3, 3 * self.beads.natoms), float)
 
             # Computes the vectors along rotations.
-            D[0] = np.tile([1, 0, 0], self.beads.natoms) / self.ism
-            D[1] = np.tile([0, 1, 0], self.beads.natoms) / self.ism
-            D[2] = np.tile([0, 0, 1], self.beads.natoms) / self.ism
+            D[0] = old_div(np.tile([1, 0, 0], self.beads.natoms), self.ism)
+            D[1] = old_div(np.tile([0, 1, 0], self.beads.natoms), self.ism)
+            D[2] = old_div(np.tile([0, 0, 1], self.beads.natoms), self.ism)
 
             # Computes unit vecs.
             for k in range(3):
-                D[k] = D[k] / np.linalg.norm(D[k])
+                D[k] = old_div(D[k], np.linalg.norm(D[k]))
 
             # Computes the transformation matrix.
             transfmatrix = np.eye(3 * self.beads.natoms) - np.dot(D.T, D)
@@ -179,7 +183,7 @@ class DynMatrixMover(Motion):
 
         elif(self.asr == "poly"):
             # Computes the centre of mass.
-            com = np.dot(np.transpose(self.beads.q.reshape((self.beads.natoms, 3))), self.m) / self.m.sum()
+            com = old_div(np.dot(np.transpose(self.beads.q.reshape((self.beads.natoms, 3))), self.m), self.m.sum())
             qminuscom = self.beads.q.reshape((self.beads.natoms, 3)) - com
             # Computes the moment of inertia tensor.
             moi = np.zeros((3, 3), float)
@@ -191,19 +195,19 @@ class DynMatrixMover(Motion):
             D = np.zeros((6, 3 * self.beads.natoms), float)
 
             # Computes the vectors along translations and rotations.
-            D[0] = np.tile([1, 0, 0], self.beads.natoms) / self.ism
-            D[1] = np.tile([0, 1, 0], self.beads.natoms) / self.ism
-            D[2] = np.tile([0, 0, 1], self.beads.natoms) / self.ism
+            D[0] = old_div(np.tile([1, 0, 0], self.beads.natoms), self.ism)
+            D[1] = old_div(np.tile([0, 1, 0], self.beads.natoms), self.ism)
+            D[2] = old_div(np.tile([0, 0, 1], self.beads.natoms), self.ism)
             for i in range(3 * self.beads.natoms):
-                iatom = i / 3
+                iatom = old_div(i, 3)
                 idof = np.mod(i, 3)
-                D[3, i] = (R[iatom, 1] * U[idof, 2] - R[iatom, 2] * U[idof, 1]) / self.ism[i]
-                D[4, i] = (R[iatom, 2] * U[idof, 0] - R[iatom, 0] * U[idof, 2]) / self.ism[i]
-                D[5, i] = (R[iatom, 0] * U[idof, 1] - R[iatom, 1] * U[idof, 0]) / self.ism[i]
+                D[3, i] = old_div((R[iatom, 1] * U[idof, 2] - R[iatom, 2] * U[idof, 1]), self.ism[i])
+                D[4, i] = old_div((R[iatom, 2] * U[idof, 0] - R[iatom, 0] * U[idof, 2]), self.ism[i])
+                D[5, i] = old_div((R[iatom, 0] * U[idof, 1] - R[iatom, 1] * U[idof, 0]), self.ism[i])
 
             # Computes unit vecs.
             for k in range(6):
-                D[k] = D[k] / np.linalg.norm(D[k])
+                D[k] = old_div(D[k], np.linalg.norm(D[k]))
 
             # Computes the transformation matrix.
             transfmatrix = np.eye(3 * self.beads.natoms) - np.dot(D.T, D)
@@ -271,7 +275,7 @@ class FDPhononCalculator(DummyPhononCalculator):
         self.dm.dbeads.q = self.dm.beads.q - dev
         minus = - dstrip(self.dm.dforces.f).copy()
         # computes a row of force-constant matrix
-        dmrow = (plus - minus) / (2 * self.dm.deltax) * self.dm.ism[step] * self.dm.ism
+        dmrow = old_div((plus - minus), (2 * self.dm.deltax) * self.dm.ism[step] * self.dm.ism)
         self.dm.dynmatrix[step] = dmrow
         self.dm.refdynmatrix[step] = dmrow
 
@@ -303,7 +307,7 @@ class NMFDPhononCalculator(FDPhononCalculator):
 
         self.dm.w2, self.dm.U = np.linalg.eigh(self.dm.dynmatrix)
         self.dm.V = self.dm.U.copy()
-        for i in xrange(len(self.dm.V)):
+        for i in range(len(self.dm.V)):
             self.dm.V[:, i] *= self.dm.ism
 
     def step(self, step=None):
@@ -311,7 +315,7 @@ class NMFDPhononCalculator(FDPhononCalculator):
 
         # initializes the finite deviation
         vknorm = np.sqrt(np.dot(self.dm.V[:, step], self.dm.V[:, step]))
-        dev = np.real(self.dm.V[:, step] / vknorm) * self.dm.deltax
+        dev = np.real(old_div(self.dm.V[:, step], vknorm)) * self.dm.deltax
         # displaces by -delta along kth normal mode.
         self.dm.dbeads.q = self.dm.beads.q + dev
         plus = - dstrip(self.dm.dforces.f).copy().flatten()
@@ -319,7 +323,7 @@ class NMFDPhononCalculator(FDPhononCalculator):
         self.dm.dbeads.q = self.dm.beads.q - dev
         minus = - dstrip(self.dm.dforces.f).copy().flatten()
         # computes a row of the refined dynmatrix, in the basis of the eigenvectors of the first dynmatrix
-        dmrowk = (plus - minus) / (2 * self.dm.deltax / vknorm)
+        dmrowk = old_div((plus - minus), (old_div(2 * self.dm.deltax, vknorm)))
         self.dm.refdynmatrix[step] = np.dot(self.dm.V.T, dmrowk)
 
     def transform(self):
@@ -338,9 +342,9 @@ class ENMFDPhononCalculator(NMFDPhononCalculator):
 
         # initializes the finite deviation
         vknorm = np.sqrt(np.dot(self.dm.V[:, step], self.dm.V[:, step]))
-        edelta = vknorm * np.sqrt(self.dm.deltae * 2.0 / abs(self.dm.w2[step]))
+        edelta = vknorm * np.sqrt(old_div(self.dm.deltae * 2.0, abs(self.dm.w2[step])))
         if edelta > 100 * self.dm.deltax: edelta = 100 * self.dm.deltax
-        dev = np.real(self.dm.V[:, step] / vknorm) * edelta
+        dev = np.real(old_div(self.dm.V[:, step], vknorm)) * edelta
         # displaces by -delta along kth normal mode.
         self.dm.dbeads.q = self.dm.beads.q + dev
         plus = - dstrip(self.dm.dforces.f).copy().flatten()
@@ -348,5 +352,5 @@ class ENMFDPhononCalculator(NMFDPhononCalculator):
         self.dm.dbeads.q = self.dm.beads.q - dev
         minus = - dstrip(self.dm.dforces.f).copy().flatten()
         # computes a row of the refined dynmatrix, in the basis of the eigenvectors of the first dynmatrix
-        dmrowk = (plus - minus) / (2 * edelta / vknorm)
+        dmrowk = old_div((plus - minus), (old_div(2 * edelta, vknorm)))
         self.dm.refdynmatrix[step] = np.dot(self.dm.V.T, dmrowk)

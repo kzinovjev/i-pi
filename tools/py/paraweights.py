@@ -28,8 +28,12 @@ Syntax:
    paraweights.py inputfile.xml [prefix] [temperature(K)] [skip]
 """
 from __future__ import print_function
+from __future__ import division
 
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys
 import re
 import numpy as np
@@ -79,7 +83,7 @@ def main(inputfile, prefix="PTW-", ttemp="300.0", skip="2000"):
                 if s.prefix != "":
                     filename = s.prefix + "_" + o.filename
                 else: filename = o.filename
-                ofilename = prefix + (("%0" + str(int(1 + np.floor(np.log(len(simul.syslist)) / np.log(10)))) + "d") % (isys)) + "_" + o.filename
+                ofilename = prefix + (("%0" + str(int(1 + np.floor(old_div(np.log(len(simul.syslist)), np.log(10))))) + "d") % (isys)) + "_" + o.filename
                 nprop.append({"filename": filename, "ofilename": ofilename, "stride": o.stride,
                               "ifile": open(filename, "r"), "ofile": None
                               })
@@ -143,7 +147,7 @@ def main(inputfile, prefix="PTW-", ttemp="300.0", skip="2000"):
                             if (nw[wk][ir] == 0):
                                 refpots[wk][ir] = pot  # picks the first value as a reference potential to avoid insane absolute values of the logweight
                             temp = tlist[ir]
-                            lw = (pot - refpots[wk][ir]) * (1 / temp - 1 / ttemp)
+                            lw = (pot - refpots[wk][ir]) * (old_div(1, temp) - old_div(1, ttemp))
                             if step > skip:  # computes trajectory weights avoiding the initial - possibly insane - values
                                 if nw[wk][ir] == 0:
                                     tw[wk][ir] = lw

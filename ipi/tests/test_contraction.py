@@ -6,6 +6,7 @@ from __future__ import print_function
 # See the "licenses" directory for full license information.
 
 
+from builtins import range
 import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal
@@ -75,7 +76,7 @@ def check_centroid_pos(n, q):
     assert_almost_equal(centroid_q, centroid_big)
 
 
-numbers_to_check = range(10, 56, 9)
+numbers_to_check = list(range(10, 56, 9))
 
 
 qs_to_check = [

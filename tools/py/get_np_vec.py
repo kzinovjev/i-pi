@@ -1,5 +1,8 @@
 #!/usr/bin/env python2
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 from functools import reduce
 description = """
 Computes the momentum distribution having as input the end-to-end vectors of the open path
@@ -23,17 +26,17 @@ def histo3d(qdata, dqxgrid, dqygrid, dqzgrid, ns, cut, invsigma, bsize):
     dqystep = np.abs(dqygrid[1] - dqygrid[0])
     dqzstep = np.abs(dqzgrid[1] - dqzgrid[0])
 
-    dqcutx = int(cut / invsigma / dqxstep)
-    dqcuty = int(cut / invsigma / dqystep)
-    dqcutz = int(cut / invsigma / dqzstep)
+    dqcutx = int(old_div(cut, invsigma / dqxstep))
+    dqcuty = int(old_div(cut, invsigma / dqystep))
+    dqcutz = int(old_div(cut, invsigma / dqzstep))
 
     nshalf = ns / 2.
     halfinvsigma2 = 0.5 * invsigma**2
 
     for x, y, z in qdata:
-        qx = int(x / dqxstep + nshalf)
-        qy = int(y / dqystep + nshalf)
-        qz = int(z / dqzstep + nshalf)
+        qx = int(old_div(x, dqxstep) + nshalf)
+        qy = int(old_div(y, dqystep) + nshalf)
+        qz = int(old_div(z, dqzstep) + nshalf)
 
         fx[qx - dqcutx:qx + dqcutx] = np.exp(-(x - dqxgrid[qx - dqcutx:qx + dqcutx])**2 * halfinvsigma2)
         fy[qy - dqcuty:qy + dqcuty] = np.exp(-(y - dqygrid[qy - dqcuty:qy + dqcuty])**2 * halfinvsigma2)
@@ -52,9 +55,9 @@ def histo3d_der(qdata, fdata, dqxgrid, dqygrid, dqzgrid, ns, cut, invsigma, bsiz
     dqystep = np.abs(dqygrid[1] - dqygrid[0])
     dqzstep = np.abs(dqzgrid[1] - dqzgrid[0])
 
-    dqcutx = int(cut / invsigma / dqxstep)
-    dqcuty = int(cut / invsigma / dqystep)
-    dqcutz = int(cut / invsigma / dqzstep)
+    dqcutx = int(old_div(cut, invsigma / dqxstep))
+    dqcuty = int(old_div(cut, invsigma / dqystep))
+    dqcutz = int(old_div(cut, invsigma / dqzstep))
 
     nshalf = ns / 2.
     halfinvsigma2 = 0.5 * invsigma**2
@@ -69,15 +72,15 @@ def histo3d_der(qdata, fdata, dqxgrid, dqygrid, dqzgrid, ns, cut, invsigma, bsiz
 
         f = fdata[i]
 
-        qx = int(x / dqxstep + nshalf)
-        qy = int(y / dqystep + nshalf)
-        qz = int(z / dqzstep + nshalf)
+        qx = int(old_div(x, dqxstep) + nshalf)
+        qy = int(old_div(y, dqystep) + nshalf)
+        qz = int(old_div(z, dqzstep) + nshalf)
 
         fx[qx - dqcutx:qx + dqcutx] = np.exp(-(x - dqxgrid[qx - dqcutx:qx + dqcutx])**2 * halfinvsigma2)
         fy[qy - dqcuty:qy + dqcuty] = np.exp(-(y - dqygrid[qy - dqcuty:qy + dqcuty])**2 * halfinvsigma2)
         fz[qz - dqcutz:qz + dqcutz] = np.exp(-(z - dqzgrid[qz - dqcutz:qz + dqcutz])**2 * halfinvsigma2)
 
-        histo[qx - dqcutx:qx + dqcutx, qy - dqcuty:qy + dqcuty, qz - dqcutz:qz + dqcutz] += -bp * ((f * c).sum() + x * mwp2 / (P - 1)) * outer3(fx[qx - dqcutx:qx + dqcutx], fy[qy - dqcuty:qy + dqcuty], fz[qz - dqcutz:qz + dqcutz])
+        histo[qx - dqcutx:qx + dqcutx, qy - dqcuty:qy + dqcuty, qz - dqcutz:qz + dqcutz] += -bp * ((f * c).sum() + old_div(x * mwp2, (P - 1))) * outer3(fx[qx - dqcutx:qx + dqcutx], fy[qy - dqcuty:qy + dqcuty], fz[qz - dqcutz:qz + dqcutz])
     return histo * np.sqrt(1.0 / 2.0 / np.pi * invsigma**2)**3
 
 
@@ -123,19 +126,19 @@ def get_np(qfile, ffile, prefix, bsize, P, mamu, Tkelv, s, ns, cut, der, skip):
     dqzstep = np.abs(dqzgrid[0] - dqzgrid[1])
 
     # Defines the final grid for momentum.
-    pxi = -np.pi / (dqxgrid[1] - dqxgrid[0])
-    pxf = +np.pi / (dqxgrid[1] - dqxgrid[0])
-    pxstep = 2 * np.pi / np.abs(dqxgrid[-1] - dqxgrid[0])
+    pxi = old_div(-np.pi, (dqxgrid[1] - dqxgrid[0]))
+    pxf = old_div(+np.pi, (dqxgrid[1] - dqxgrid[0]))
+    pxstep = old_div(2 * np.pi, np.abs(dqxgrid[-1] - dqxgrid[0]))
     pxgrid = np.linspace(pxi, pxf, ns)
 
-    pyi = -np.pi / (dqygrid[1] - dqygrid[0])
-    pyf = +np.pi / (dqygrid[1] - dqygrid[0])
-    pystep = 2 * np.pi / np.abs(dqygrid[-1] - dqygrid[0])
+    pyi = old_div(-np.pi, (dqygrid[1] - dqygrid[0]))
+    pyf = old_div(+np.pi, (dqygrid[1] - dqygrid[0]))
+    pystep = old_div(2 * np.pi, np.abs(dqygrid[-1] - dqygrid[0]))
     pygrid = np.linspace(pyi, pyf, ns)
 
-    pzi = -np.pi / (dqzgrid[1] - dqzgrid[0])
-    pzf = +np.pi / (dqzgrid[1] - dqzgrid[0])
-    pzstep = 2 * np.pi / np.abs(dqzgrid[-1] - dqzgrid[0])
+    pzi = old_div(-np.pi, (dqzgrid[1] - dqzgrid[0]))
+    pzf = old_div(+np.pi, (dqzgrid[1] - dqzgrid[0]))
+    pzstep = old_div(2 * np.pi, np.abs(dqzgrid[-1] - dqzgrid[0]))
     pzgrid = np.linspace(pzi, pzf, ns)
 
     if(ns % 2 == 0): pxgrid = pxgrid - pxstep / 2.; pygrid = pygrid - pystep / 2.; pzgrid = pzgrid - pzstep / 2.;
@@ -157,11 +160,11 @@ def get_np(qfile, ffile, prefix, bsize, P, mamu, Tkelv, s, ns, cut, der, skip):
     pz2list = []
 
     if der == False:
-        n_block = int(step / bsize)
+        n_block = int(old_div(step, bsize))
         if (n_block == 0):
             print('not enough data to build a block')
             exit()
-        for x in xrange(n_block):
+        for x in range(n_block):
             dq = delta[x * bsize: (x + 1) * bsize]
             print("# Computing 3D histogram.")
             h3d = histo3d(np.concatenate((dq, -dq)), dqxgrid, dqygrid, dqzgrid, ns, cut, np.sqrt(T * P * m), bsize)
@@ -240,11 +243,11 @@ def get_np(qfile, ffile, prefix, bsize, P, mamu, Tkelv, s, ns, cut, der, skip):
         print("# time taken (s)", time.clock() - start)
 
     else:
-        n_block = int(step / bsize)
+        n_block = int(old_div(step, bsize))
         if (n_block == 0):
             print('not enough data to build a block')
             exit()
-        for x in xrange(n_block):
+        for x in range(n_block):
             dq = delta[x * bsize: (x + 1) * bsize]
             dfx = fx[x * bsize: (x + 1) * bsize]
             dfy = fy[x * bsize: (x + 1) * bsize]
@@ -268,14 +271,14 @@ def get_np(qfile, ffile, prefix, bsize, P, mamu, Tkelv, s, ns, cut, der, skip):
         h00z = hxyz((0, 0, zgrid))
 
         h = np.cumsum((hx00 - hx00[::-1]) * 0.5) * dqxstep
-        h = h / (h.sum() * dqxstep) * n_block * bsize
-        hx00 = hx00 / (h.sum() * dqxstep) * n_block * bsize
+        h = old_div(h, (h.sum() * dqxstep) * n_block * bsize)
+        hx00 = old_div(hx00, (h.sum() * dqxstep) * n_block * bsize)
         print(h.sum() * dqxstep)
         np.savetxt("hx.data", np.c_[xgrid, h])
 
-        print("# px^2 (from the 2nd derivative of the histogram)", (30.0 * avghx[(ns - 1) / 2] - 16.0 * avghx[(ns - 1) / 2 + 1] - 16.0 * avghx[(ns - 1) / 2 - 1] + avghx[(ns - 1) / 2 - 2] + avghx[(ns - 1) / 2 + 2]) / dqxstep**2 / norm_npx / 12.0)
+        print("# px^2 (from the 2nd derivative of the histogram)", old_div((30.0 * avghx[old_div((ns - 1), 2)] - 16.0 * avghx[old_div((ns - 1), 2) + 1] - 16.0 * avghx[old_div((ns - 1), 2) - 1] + avghx[old_div((ns - 1), 2) - 2] + avghx[old_div((ns - 1), 2) + 2]), dqxstep**2 / norm_npx / 12.0))
 
-        print((30.0 * h[(ns - 1) / 2] - 16.0 * h[(ns - 1) / 2 + 1] - 16.0 * h[(ns - 1) / 2 - 1] + h[(ns - 1) / 2 - 2] + h[(ns - 1) / 2 + 2]) / dqxstep**2 / (n_block * bsize) / 12.0)
+        print(old_div((30.0 * h[old_div((ns - 1), 2)] - 16.0 * h[old_div((ns - 1), 2) + 1] - 16.0 * h[old_div((ns - 1), 2) - 1] + h[old_div((ns - 1), 2) - 2] + h[old_div((ns - 1), 2) + 2]), dqxstep**2 / (n_block * bsize) / 12.0))
 
 if __name__ == '__main__':
 

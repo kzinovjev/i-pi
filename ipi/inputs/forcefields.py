@@ -5,6 +5,7 @@
 # See the "licenses" directory for full license information.
 
 
+from builtins import str
 from copy import copy
 import numpy as np
 

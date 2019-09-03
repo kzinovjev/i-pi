@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 from __future__ import print_function
+from builtins import range
 from ipi.utils.depend import *
 import numpy as np
 import threading
@@ -64,13 +65,13 @@ myB.bind(myA)
 
 
 def threadA(Aobj):
-    for i in xrange(10000):
+    for i in range(10000):
         Aobj.scalar = np.sqrt(i)
         time.sleep(0.0001)
 
 
 def threadB(Aobj, Bobj):
-    for i in xrange(10000):
+    for i in range(10000):
         Aobj.scalar = i
         time.sleep(0.0001)
         Bobj.scalar = 4 + i

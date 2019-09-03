@@ -6,12 +6,16 @@ use multiple force providers to get e.g. bonded and non-bonded interactions.
 It is an extra layer between the dynamics (that only cares about TOTAL force)
 and the driver (that only cares about a single bead).
 """
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import time
 import sys
 import threading
@@ -729,12 +733,12 @@ class Forces(dobject):
         if len(self.mforces) != len(refforce.mforces):
             raise ValueError("Cannot copy forces between objects with different numbers of components")
 
-        for k in xrange(len(self.mforces)):
+        for k in range(len(self.mforces)):
             mreff = refforce.mforces[k]
             mself = self.mforces[k]
             if mreff.nbeads != mself.nbeads:
                 raise ValueError("Cannot copy forces between objects with different numbers of beads for the " + str(k) + "th component")
-            for b in xrange(mself.nbeads):
+            for b in range(mself.nbeads):
                 dfkbref = dd(mreff._forces[b])
                 dfkbself = dd(mself._forces[b])
                 dfkbself.ufvx.set(deepcopy(dfkbref.ufvx._value), manual=False)
@@ -826,8 +830,8 @@ class Forces(dobject):
         # calculates the finite displacement.
         fbase = dstrip(self.f)
         eps = self.mforces[index].epsilon
-        delta = np.abs(eps) / np.sqrt((fbase / self.beads.m3 * fbase / self.beads.m3).sum() / (self.nbeads * self.natoms))
-        dq = delta * fbase / self.beads.m3
+        delta = old_div(np.abs(eps), np.sqrt(old_div((old_div(fbase, self.beads.m3 * fbase / self.beads.m3)).sum(), (self.nbeads * self.natoms))))
+        dq = old_div(delta * fbase, self.beads.m3)
 
         # stores the force component.
         fbase = self.mrpc[index].b2tob1(dstrip(self.mforces[index].f))
@@ -859,7 +863,7 @@ class Forces(dobject):
 
                 # we use an aux force evaluator with half the number of beads.
                 if self.dforces is None:
-                    self.dbeads = self.beads.copy(self.nbeads / 2)
+                    self.dbeads = self.beads.copy(old_div(self.nbeads, 2))
                     self.dcell = self.cell.copy()
                     self.dforces = self.copy(self.dbeads, self.dcell)
 
@@ -875,7 +879,7 @@ class Forces(dobject):
                 fminus = self.dforces.mrpc[index].b2tob1(dstrip(self.dforces.mforces[index].f))
 
                 # calculates the virial.
-                vminus = np.zeros((self.nbeads / 2, 3, 3), float)
+                vminus = np.zeros((old_div(self.nbeads, 2), 3, 3), float)
                 dmvirs = dstrip(self.dforces.mforces[index].virs)
                 for i in range(3):
                     for j in range(3):
@@ -934,8 +938,8 @@ class Forces(dobject):
             if self.alpha == 0:
 
                 # the first half of the aux beads are fwd displaced while the second half are bkwd displaced configurations.
-                self.dbeads.q[:self.nbeads / 2] = dstrip(self.beads.q)[1::2] + dq[1::2]
-                self.dbeads.q[-self.nbeads / 2:] = dstrip(self.beads.q)[1::2] - dq[1::2]
+                self.dbeads.q[:old_div(self.nbeads, 2)] = dstrip(self.beads.q)[1::2] + dq[1::2]
+                self.dbeads.q[old_div(-self.nbeads, 2):] = dstrip(self.beads.q)[1::2] - dq[1::2]
 
                 # calculates the forces.
                 fplusminus = self.dforces.mrpc[index].b2tob1(dstrip(self.dforces.mforces[index].f))
@@ -948,10 +952,10 @@ class Forces(dobject):
                         vplusminus[:, i, j] += self.dforces.mrpc[index].b2tob1(dmvirs[:, i, j])
 
                 # calculates the finite difference.
-                for k in range(self.nbeads / 2):
+                for k in range(old_div(self.nbeads, 2)):
                     j = 2 * k + 1
-                    f_4th_order[j] = 2.0 * (fplusminus[self.nbeads / 2 + k] - fplusminus[k]) / 2.0 / delta
-                    v_4th_order[j] = 2.0 * (vplusminus[self.nbeads / 2 + k] - vplusminus[k]) / 2.0 / delta
+                    f_4th_order[j] = 2.0 * (fplusminus[old_div(self.nbeads, 2) + k] - fplusminus[k]) / 2.0 / delta
+                    v_4th_order[j] = 2.0 * (vplusminus[old_div(self.nbeads, 2) + k] - vplusminus[k]) / 2.0 / delta
 
             # For the case of alpha != 0, all the beads are displaced.
             else:
@@ -1085,7 +1089,7 @@ class Forces(dobject):
             exit()
 
         # this evaluates the square forces contribution to the SC potential (only the difference with the Trotter potential is returned)
-        return self.coeffsc_part_1.T * dstrip(self.pots) + self.coeffsc_part_2.T * np.sum(dstrip(self.f) / self.beads.m3 * dstrip(self.f), axis=1)
+        return self.coeffsc_part_1.T * dstrip(self.pots) + self.coeffsc_part_2.T * np.sum(old_div(dstrip(self.f), self.beads.m3 * dstrip(self.f)), axis=1)
 
     def get_fsc_part_1(self):
         """Obtains the linear component of Suzuki-Chin correction to the force."""
@@ -1125,6 +1129,6 @@ class Forces(dobject):
         """Obtains the coefficients of the linear part of the Suzuki-Chin correction."""
 
         rc = np.zeros(self.beads.nbeads)
-        rc[0::2] = (self.alpha / self.omegan2 / 9.0)
-        rc[1::2] = ((1.0 - self.alpha) / self.omegan2 / 9.0)
+        rc[0::2] = (old_div(self.alpha, self.omegan2 / 9.0))
+        rc[1::2] = (old_div((1.0 - self.alpha), self.omegan2 / 9.0))
         return np.asmatrix(rc).T

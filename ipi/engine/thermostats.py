@@ -5,12 +5,16 @@ temperature ensembles. Includes the new GLE thermostat, which can be used to
 run PI+GLE dynamics, reducing the number of path integral beads required.
 """
 from __future__ import print_function
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import numpy as np
 
 from ipi.utils.depend import *
@@ -150,7 +154,7 @@ class ThermoLangevin(Thermostat):
     def get_T(self):
         """Calculates the coefficient of the overall drift of the velocities."""
 
-        return np.exp(-self.dt / self.tau)
+        return np.exp(old_div(-self.dt, self.tau))
 
     def get_S(self):
         """Calculates the coefficient of the white noise."""
@@ -331,7 +335,7 @@ class ThermoPILE_L(Thermostat):
         # any previously-stored value between the sub-thermostats
         if bindcentroid:
             for t in self._thermos:
-                t.ethermo = prev_ethermo / nm.nbeads
+                t.ethermo = old_div(prev_ethermo, nm.nbeads)
             dself.ethermo._func = self.get_ethermo;
             # if we are not binding the centroid just yet, this bit of the piping
             # is delegated to the function which is actually calling this
@@ -384,7 +388,7 @@ class ThermoSVR(Thermostat):
     def get_et(self):
         """Calculates the damping term in the propagator."""
 
-        return np.exp(-self.dt / self.tau)
+        return np.exp(old_div(-self.dt, self.tau))
 
     def get_K(self):
         """Calculates the average kinetic energy per degree of freedom."""
@@ -416,7 +420,7 @@ class ThermoSVR(Thermostat):
         Journal of Chemical Physics 126, 014101 (2007)
         """
 
-        K = np.dot(dstrip(self.p), dstrip(self.p) / dstrip(self.m)) * 0.5
+        K = np.dot(dstrip(self.p), old_div(dstrip(self.p), dstrip(self.m))) * 0.5
 
         # rescaling is un-defined if the KE is zero
         if K == 0.0:
@@ -425,13 +429,13 @@ class ThermoSVR(Thermostat):
         # gets the stochastic term (basically a Gamma distribution for the kinetic energy)
         r1 = self.prng.g
         if (self.ndof - 1) % 2 == 0:
-            rg = 2.0 * self.prng.gamma((self.ndof - 1) / 2)
+            rg = 2.0 * self.prng.gamma(old_div((self.ndof - 1), 2))
         else:
-            rg = 2.0 * self.prng.gamma((self.ndof - 2) / 2) + self.prng.g**2
+            rg = 2.0 * self.prng.gamma(old_div((self.ndof - 2), 2)) + self.prng.g**2
 
-        alpha2 = self.et + self.K / K * (1 - self.et) * (r1**2 + rg) + 2.0 * r1 * np.sqrt(self.K / K * self.et * (1 - self.et))
+        alpha2 = self.et + old_div(self.K, K * (1 - self.et) * (r1**2 + rg)) + 2.0 * r1 * np.sqrt(old_div(self.K, K * self.et * (1 - self.et)))
         alpha = np.sqrt(alpha2)
-        if (r1 + np.sqrt(2 * K / self.K * self.et / (1 - self.et))) < 0:
+        if (r1 + np.sqrt(old_div(2 * K, self.K * self.et / (1 - self.et)))) < 0:
             alpha *= -1
 
         self.ethermo += K * (1 - alpha2)
@@ -502,7 +506,7 @@ class ThermoPILE_G(ThermoPILE_L):
 
         # splits any previous ethermo between the thermostats, and finishes to bind ethermo to the sum function
         for t in self._thermos:
-            t.ethermo = prev_ethermo / nm.nbeads
+            t.ethermo = old_div(prev_ethermo, nm.nbeads)
         dself.ethermo._func = self.get_ethermo;
 
 
@@ -648,7 +652,7 @@ class ThermoGLE(Thermostat):
 
         p = dstrip(self.p).copy()
 
-        self.s[0, :] = self.p / self.sm
+        self.s[0, :] = old_div(self.p, self.sm)
 
         self.ethermo += np.dot(self.s[0], self.s[0]) * 0.5
         self.s[:] = np.dot(self.T, self.s) + np.dot(self.S, self.prng.gvec(self.s.shape))
@@ -805,7 +809,7 @@ class ThermoNMGLE(Thermostat):
         # one has to split
         # any previously-stored value between the sub-thermostats
         for t in self._thermos:
-            t.ethermo = prev_ethermo / self.nb
+            t.ethermo = old_div(prev_ethermo, self.nb)
 
         dself.ethermo._func = self.get_ethermo;
 
@@ -911,19 +915,19 @@ class ThermoCL(Thermostat):
     def get_lgT(self):
         """Calculates the Langevin coefficient of drift."""
 
-        if self.tau > 0: return np.exp(-0.5 * self.dt / self.tau)
+        if self.tau > 0: return np.exp(old_div(-0.5 * self.dt, self.tau))
         else: return 1.0
 
     def get_inT(self):
         """Calculates the coefficient of drift to compensate for the inherent noise."""
 
-        if self.intau > 0: return np.exp(-0.5 * self.dt / self.intau)
+        if self.intau > 0: return np.exp(old_div(-0.5 * self.dt, self.intau))
         else: return 1.0
 
     def get_idT(self):
         """Calculates the coefficient of drift for the inherent dissipation."""
 
-        if self.idtau > 0: return np.exp(-0.5 * self.dt / self.idtau)
+        if self.idtau > 0: return np.exp(old_div(-0.5 * self.dt, self.idtau))
         else: return 1.0
 
     def get_T(self):
@@ -990,14 +994,14 @@ class ThermoCL(Thermostat):
         self.ethermo = et
 
         if self.apat > 0 and self.idstep and ((self.intau != 0) ^ (self.idtau != 0)):
-            ekin = np.dot(dstrip(self.p), dstrip(self.p) / dstrip(self.m)) * 0.5
-            mytemp = ekin / Constants.kb / self.ndof * 2
+            ekin = np.dot(dstrip(self.p), old_div(dstrip(self.p), dstrip(self.m))) * 0.5
+            mytemp = old_div(ekin, Constants.kb / self.ndof * 2)
 
             if self.intau != 0:
-                if mytemp != 0: self.intau /= (mytemp / self.temp)**(self.dt / self.apat)
+                if mytemp != 0: self.intau /= (old_div(mytemp, self.temp))**(old_div(self.dt, self.apat))
                 print("ThermoCL inherent noise time scale: " + str(self.intau))
             else:
-                self.idtau *= (mytemp / self.temp)**(self.dt / self.apat)
+                self.idtau *= (old_div(mytemp, self.temp))**(old_div(self.dt, self.apat))
                 print("ThermoCL inherent dissipation time scale: " + str(self.idtau))
 
         self.idstep = not self.idstep
@@ -1020,7 +1024,7 @@ class ThermoFFL(Thermostat):
     def get_T(self):
         """Calculates the coefficient of the overall drift of the velocities."""
 
-        return np.exp(-self.dt / self.tau)
+        return np.exp(old_div(-self.dt, self.tau))
 
     def get_S(self):
         """Calculates the coefficient of the white noise."""
@@ -1078,18 +1082,18 @@ class ThermoFFL(Thermostat):
         # Check whether to flip momenta back
         if self.flip == 'soft':
             # Soft flip
-            p_old = np.reshape(p_old, (len(p) / 3, 3))
-            p_new = np.reshape(p, (len(p) / 3, 3))
-            dotpr = hfunc(np.sum(np.multiply(p_old, p_new), axis=1) / np.sum(np.multiply(p_old, p_old), axis=1))
+            p_old = np.reshape(p_old, (old_div(len(p), 3), 3))
+            p_new = np.reshape(p, (old_div(len(p), 3), 3))
+            dotpr = hfunc(old_div(np.sum(np.multiply(p_old, p_new), axis=1), np.sum(np.multiply(p_old, p_old), axis=1)))
             p += np.reshape(np.multiply(dotpr, p_old.T).T, len(p))
         elif (self.flip == 'hard'):
             # Hard flip
             p = np.multiply(p, np.sign(np.multiply(p, p_old)))
         elif (self.flip == 'rescale'):
             # Rescale flip
-            p_old = np.reshape(p_old, (len(p) / 3, 3))
-            p_new = np.reshape(p, (len(p) / 3, 3))
-            scalfac = np.linalg.norm(p_new, axis=1) / np.linalg.norm(p_old, axis=1)
+            p_old = np.reshape(p_old, (old_div(len(p), 3), 3))
+            p_new = np.reshape(p, (old_div(len(p), 3), 3))
+            scalfac = old_div(np.linalg.norm(p_new, axis=1), np.linalg.norm(p_old, axis=1))
             p = np.reshape(np.multiply(scalfac, p_old.T).T, len(p))
         # Otherwise we have chosen 'none', and we just don't do anything here
 

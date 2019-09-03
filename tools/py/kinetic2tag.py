@@ -1,5 +1,9 @@
 #!/usr/bin/env python2
 
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 description = """Computes the Transient Anisotropic Gaussian (TAG) approximation
 of the instantaneous kinetic energy tensor, with a moving average
 triangular window of the specified lag. Needs files with
@@ -42,7 +46,7 @@ def main(prefix, lag):
             ret = read_file("xyz", ikod)
             kod = dstrip(ret["atoms"].q)
             if natoms == 0:  # initializes vectors
-                natoms = len(kin) / 3
+                natoms = old_div(len(kin), 3)
                 ktbuf = np.zeros((cbuf, natoms, 3, 3), float)   # implement the buffer as a circular one so one doesn't need to re-allocate and storage is continuous
                 nkt = np.zeros((natoms, 3, 3), float)
                 mkt = np.zeros((natoms, 3, 3), float)
@@ -64,7 +68,7 @@ def main(prefix, lag):
             # now we can compute the mean tensor, and estimate the components of the kinetic energy
             mkt[:] = 0.0; tw = 0.0
             for j in range(cbuf):
-                w = 1.0 - np.abs(j - lag) * 1.0 / lag;
+                w = 1.0 - old_div(np.abs(j - lag) * 1.0, lag);
                 mkt += w * ktbuf[(ifr - j) % cbuf];
                 tw += w;
             mkt *= 1.0 / tw

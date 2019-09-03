@@ -1,10 +1,14 @@
 """Algorithms that deal with normal mode transformations and ring polymer contraction."""
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import numpy as np
 
 from ipi.utils.messages import verbosity, info
@@ -28,22 +32,22 @@ def mk_nm_matrix(nbeads):
     b2nm = np.zeros((nbeads, nbeads))
     b2nm[0, :] = np.sqrt(1.0)
     for j in range(nbeads):
-        for i in range(1, nbeads / 2 + 1):
+        for i in range(1, old_div(nbeads, 2) + 1):
             b2nm[i, j] = np.sqrt(2.0) * np.cos(2 * np.pi * j * i / float(nbeads))
-        for i in range(nbeads / 2 + 1, nbeads):
+        for i in range(old_div(nbeads, 2) + 1, nbeads):
             b2nm[i, j] = np.sqrt(2.0) * np.sin(2 * np.pi * j * i / float(nbeads))
     if (nbeads % 2) == 0:
-        b2nm[nbeads / 2, 0:nbeads:2] = 1.0
-        b2nm[nbeads / 2, 1:nbeads:2] = -1.0
-    return b2nm / np.sqrt(nbeads)
+        b2nm[old_div(nbeads, 2), 0:nbeads:2] = 1.0
+        b2nm[old_div(nbeads, 2), 1:nbeads:2] = -1.0
+    return old_div(b2nm, np.sqrt(nbeads))
 
 
 def nm_eva(nbeads):
-    return 2 * np.array([np.sin(k * np.pi / nbeads) for k in range(nbeads)])
+    return 2 * np.array([np.sin(old_div(k * np.pi, nbeads)) for k in range(nbeads)])
 
 
 def o_nm_eva(nbeads):
-    return 2 * np.array([np.sin(k * np.pi / (2 * nbeads)) for k in range(nbeads)])
+    return 2 * np.array([np.sin(old_div(k * np.pi, (2 * nbeads))) for k in range(nbeads)])
 
 
 def mk_o_nm_matrix(nbeads):
@@ -57,7 +61,7 @@ def mk_o_nm_matrix(nbeads):
     for j in range(0, nbeads):
         for i in range(1, nbeads):
             b2o_nm[i, j] = np.sqrt(2.0) * np.cos(np.pi * (j + 0.5) * i / float(nbeads))
-    return b2o_nm / np.sqrt(nbeads)
+    return old_div(b2o_nm, np.sqrt(nbeads))
 
 
 def mk_rs_matrix(nb1, nb2):
@@ -80,14 +84,14 @@ def mk_rs_matrix(nb1, nb2):
         # builds the "reduction" matrix that picks the normal modes we want to keep
         b1_b2 = np.zeros((nb2, nb1), float)
         b1_b2[0, 0] = 1.0
-        for i in range(1, nb2 / 2 + 1):
+        for i in range(1, old_div(nb2, 2) + 1):
             b1_b2[i, i] = 1.0
             b1_b2[nb2 - i, nb1 - i] = 1.0
         if (nb2 % 2 == 0):
             # if we are contracting down to an even number of beads, then we have to
             # pick just one of the last degenerate modes to match onto the single
             # stiffest mode in the new path
-            b1_b2[nb2 / 2, nb1 - nb2 / 2] = 0.0
+            b1_b2[old_div(nb2, 2), nb1 - old_div(nb2, 2)] = 0.0
 
         rs_b1_b2 = np.dot(nm_b2, np.dot(b1_b2, b1_nm))
         return rs_b1_b2 * np.sqrt(float(nb2) / float(nb1))
@@ -115,14 +119,14 @@ def mk_o_rs_matrix(nb1, nb2):
         # builds the "reduction" matrix that picks the normal modes we want to keep
         b1_b2 = np.zeros((nb2, nb1), float)
         b1_b2[0, 0] = 1.0
-        for i in range(1, nb2 / 2 + 1):
+        for i in range(1, old_div(nb2, 2) + 1):
             b1_b2[i, i] = 1.0
             b1_b2[nb2 - i, nb1 - i] = 1.0
         if (nb2 % 2 == 0):
             # if we are contracting down to an even number of beads, then we have to
             # pick just one of the last degenerate modes to match onto the single
             # stiffest mode in the new path
-            b1_b2[nb2 / 2, nb1 - nb2 / 2] = 0.0
+            b1_b2[old_div(nb2, 2), nb1 - old_div(nb2, 2)] = 0.0
 
         rs_b1_b2 = np.dot(nm_b2, np.dot(b1_b2, b1_nm))
         return rs_b1_b2 * np.sqrt(float(nb2) / float(nb1))
@@ -325,9 +329,9 @@ class nm_fft(object):  # ! TODO add (matrix-version) of the open path transforma
         self.qdummy[:] = q
         self.fft()
         if self.nbeads == 2:
-            return self.qnmdummy.real / np.sqrt(self.nbeads)
+            return old_div(self.qnmdummy.real, np.sqrt(self.nbeads))
 
-        nmodes = self.nbeads / 2
+        nmodes = old_div(self.nbeads, 2)
 
         self.qnmdummy /= np.sqrt(self.nbeads)
         qnm = np.zeros(q.shape)
@@ -362,7 +366,7 @@ class nm_fft(object):  # ! TODO add (matrix-version) of the open path transforma
             self.ifft()
             return self.qdummy * np.sqrt(self.nbeads)
 
-        nmodes = self.nbeads / 2
+        nmodes = old_div(self.nbeads, 2)
         odd = self.nbeads - 2 * nmodes  # 0 if even, 1 if odd
 
         qnm_complex = np.zeros((nmodes + 1, len(qnm[0, :])), complex)

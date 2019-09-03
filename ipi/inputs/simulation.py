@@ -141,7 +141,7 @@ class InputSimulation(Input):
 
         self.mode.store(simul.mode)
 
-        _fflist = [v for k, v in sorted(simul.fflist.iteritems())]
+        _fflist = [v for k, v in sorted(simul.fflist.items())]
         if len(self.extra) != len(_fflist) + len(simul.syslist):
             self.extra = [0] * (len(_fflist) + len(simul.syslist))
 

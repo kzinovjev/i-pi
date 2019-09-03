@@ -1,7 +1,11 @@
 #!/usr/bin/env python2
 
 from __future__ import print_function
+from __future__ import division
 
+from builtins import next
+from builtins import range
+from past.utils import old_div
 import os
 import sys
 import argparse
@@ -80,7 +84,7 @@ def contract_trajectory(fns_in, fn_out_template, n_new, cell_units_in, cell_unit
 
         # Consistency check.
         h = frames[0]["cell"]
-        natoms = len(frames[0]["data"]) / 3
+        natoms = old_div(len(frames[0]["data"]), 3)
         for i in range(n):
 
             # Check that all the cells are the same.

@@ -7,6 +7,8 @@ in the XYZ format.
 # See the "licenses" directory for full license information.
 
 
+from builtins import next
+from builtins import range
 import sys
 import re
 

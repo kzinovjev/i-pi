@@ -88,11 +88,19 @@ in parallel while the tasks queued on QUEUE_COM will be run in serial.
 
 """
 from __future__ import print_function
+from __future__ import division
 
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import input
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import argparse
 import os
-import Queue
+import queue
 import re
 import shutil
 import shlex
@@ -145,8 +153,8 @@ try:
 except KeyError:
     IPI_ROOT_FOLDER = os.path.abspath('../')
 
-QUEUE_ALL = Queue.Queue()  # Queue to access the "run"
-QUEUE_COM = Queue.Queue()  # Queue to access the "compare"
+QUEUE_ALL = queue.Queue()  # Queue to access the "run"
+QUEUE_COM = queue.Queue()  # Queue to access the "compare"
 
 
 def main():
@@ -186,7 +194,7 @@ def main():
             if len(running_test) < _parser()['nproc']:
                 try:
                     running_test.append(QUEUE_ALL.get_nowait())
-                except Queue.Empty:
+                except queue.Empty:
                     pass
                 else:
                     running_test[-1].generate_output = True
@@ -204,7 +212,7 @@ def main():
             if len(running_com) < 1:
                 try:
                     running_com.append(QUEUE_COM.get_nowait())
-                except Queue.Empty:
+                except queue.Empty:
                     pass
                 else:
                     running_com[-1].copy_reference = _parser()['create_reference']
@@ -890,8 +898,8 @@ class Test(threading.Thread):
                         isys = 0
                         # zero-padded bead number
                         padb = (("%0" + str(int(1 +
-                                                np.floor(np.log(nbeads) /
-                                                         np.log(10)))) +
+                                                np.floor(old_div(np.log(nbeads),
+                                                         np.log(10))))) +
                                  "d") % (_bi))
 
                         for _ss in simul.syslist:
@@ -1001,7 +1009,7 @@ def answer_is_y(msg):
     while answer.lower() not in _yes and answer not in _no:
         sys.stderr.write(msg)
 
-        answer = raw_input()
+        answer = input()
 
         if answer.lower() in _yes:
             return True

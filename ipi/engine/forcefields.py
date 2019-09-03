@@ -4,12 +4,17 @@ ForceField objects are force providers, i.e. they are the abstraction
 layer for a driver that gets positions and returns forces (and energy).
 """
 from __future__ import print_function
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import map
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import time
 import threading
 
@@ -128,7 +133,7 @@ class ForceField(dobject):
         par_str = " "
 
         if not self.pars is None:
-            for k, v in self.pars.items():
+            for k, v in list(self.pars.items()):
                 par_str += k + " : " + str(v) + " , "
         else:
             par_str = " "
@@ -377,11 +382,11 @@ class FFLennardJones(ForceField):
             dij = q[i] - q[:i]
             rij2 = (dij**2).sum(axis=1)
 
-            x6 = (self.sigma2 / rij2)**3
+            x6 = (old_div(self.sigma2, rij2))**3
             x12 = x6**2
 
             v += (x12 - x6).sum()
-            dij *= (self.sixepsfour * (2.0 * x12 - x6) / rij2)[:, np.newaxis]
+            dij *= (old_div(self.sixepsfour * (2.0 * x12 - x6), rij2))[:, np.newaxis]
             f[i] += dij.sum(axis=0)
             f[:i] -= dij
 
@@ -468,9 +473,9 @@ class FFQUIP(ForceField):
         self.pot.calc(self.atoms, energy=True, force=True, virial=True)
 
         # Obtains the energetics and converts to i-pi units.
-        u = self.atoms.energy  / self.energy_conv
-        f = self.atoms.force.T.flatten()   / self.force_conv
-        v = np.triu(self.atoms.virial) / self.energy_conv
+        u = old_div(self.atoms.energy, self.energy_conv)
+        f = old_div(self.atoms.force.T.flatten(), self.force_conv)
+        v = old_div(np.triu(self.atoms.virial), self.energy_conv)
 
         r["result"] = [u, f.reshape(nat * 3), v, ""]
         r["status"] = "Done"
@@ -618,7 +623,7 @@ class FFPlumed(ForceField):
         """A wrapper function to call the PLUMED evaluation routines
         and return forces."""
 
-        if self.natoms != len(r["pos"]) / 3:
+        if self.natoms != old_div(len(r["pos"]), 3):
             raise ValueError("Size of atom array changed after initialization of FFPlumed")
 
         v = 0.0
@@ -747,7 +752,7 @@ class FFYaff(ForceField):
         """ Evaluate the energy and forces with the Yaff force field. """
 
         q = r["pos"]
-        nat = len(q) / 3
+        nat = old_div(len(q), 3)
         rvecs = r["cell"][0]
 
         self.ff.update_rvecs(np.ascontiguousarray(rvecs.T, dtype=np.float64))

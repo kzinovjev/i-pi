@@ -5,12 +5,15 @@ Holds the algorithms required for normal mode propagators, and the objects to
 do the constant temperature and pressure algorithms. Also calculates the
 appropriate conserved energy quantity for the ensemble of choice.
 """
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import range
+from past.utils import old_div
 import time
 
 import numpy as np
@@ -158,7 +161,7 @@ class Ensemble(dobject):
         dself.hweights = depend_array(name="hweights", value=np.asarray(self.hweights))
 
         # we use ScaledForceComponents to replicate the physical forces without (hopefully) them being actually recomputed
-        for ic in xrange(len(self.forces.mforces)):
+        for ic in range(len(self.forces.mforces)):
             sfc = ScaledForceComponent(self.forces.mforces[ic], 1.0)
             self.bias.add_component(self.forces.mbeads[ic], self.forces.mrpc[ic], sfc)
             dd(sfc).scaling._func = lambda i=ic: self.hweights[i] - 1
@@ -224,5 +227,5 @@ class Ensemble(dobject):
         for k in self._xlkin:
             lpens += k.get()
 
-        lpens *= -1.0 / (Constants.kb * self.temp * self.beads.nbeads)
+        lpens *= old_div(-1.0, (Constants.kb * self.temp * self.beads.nbeads))
         return lpens

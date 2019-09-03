@@ -6,6 +6,8 @@ from __future__ import print_function
 # See the "licenses" directory for full license information.
 
 
+from builtins import str
+from builtins import object
 import traceback
 import sys
 

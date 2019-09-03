@@ -4,12 +4,15 @@ Used for holding information about the atoms, including their positions, masses
 momenta and kinetic energy. Has separate classes for accessing the global
 arrays of atoms and for individual atoms.
 """
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import range
+from past.utils import old_div
 import numpy as np
 
 from ipi.utils.depend import *
@@ -59,7 +62,7 @@ class Atom(dobject):
     def kin(self):
         """Calculates the contribution of the atom to the kinetic energy."""
 
-        return np.dot(self.p, self.p) / (2.0 * self.m)
+        return old_div(np.dot(self.p, self.p), (2.0 * self.m))
 
     @property
     def kstress(self):
@@ -72,7 +75,7 @@ class Atom(dobject):
         for i in range(3):
             for j in range(i, 3):
                 ks[i, j] = p[i] * p[j]
-        return ks / self.m
+        return old_div(ks, self.m)
 
 
 class Atoms(dobject):
@@ -245,7 +248,7 @@ class Atoms(dobject):
         """Calculates the total kinetic energy of the system."""
 
         p = dstrip(self.p)
-        return 0.5 * np.dot(p, p / dstrip(self.m3))
+        return 0.5 * np.dot(p, old_div(p, dstrip(self.m3)))
 
     def get_kstress(self):
         """Calculates the total contribution of the atoms to the kinetic stress
@@ -259,10 +262,10 @@ class Atoms(dobject):
         pz = p[2::3]
 
         ks = np.zeros((3, 3), float)
-        ks[0, 0] = np.dot(px, px / m)
-        ks[1, 1] = np.dot(py, py / m)
-        ks[2, 2] = np.dot(pz, pz / m)
-        ks[0, 1] = np.dot(px, py / m)
-        ks[0, 2] = np.dot(px, pz / m)
-        ks[1, 2] = np.dot(py, pz / m)
+        ks[0, 0] = np.dot(px, old_div(px, m))
+        ks[1, 1] = np.dot(py, old_div(py, m))
+        ks[2, 2] = np.dot(pz, old_div(pz, m))
+        ks[0, 1] = np.dot(px, old_div(py, m))
+        ks[0, 2] = np.dot(px, old_div(pz, m))
+        ks[1, 2] = np.dot(py, old_div(pz, m))
         return ks

@@ -18,8 +18,12 @@ will be output.
 Syntax:
    trimsim.py inputfile.xml
 """
+from __future__ import division
 
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys
 import os
 import numpy as np
@@ -72,7 +76,7 @@ def main(inputfile, outdir="trim"):
                     ntraj = []
                     isys = 0
                     # zero-padded bead number
-                    padb = (("%0" + str(int(1 + np.floor(np.log(nbeads) / np.log(10)))) + "d") % (b))
+                    padb = (("%0" + str(int(1 + np.floor(old_div(np.log(nbeads), np.log(10))))) + "d") % (b))
                     for s in simul.syslist:
                         if s.prefix != "":
                             filename = s.prefix + "_" + o.filename

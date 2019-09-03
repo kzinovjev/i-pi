@@ -16,8 +16,11 @@ main directory must be added to the PYTHONPATH environment variable.
 
 """
 from __future__ import print_function
+from __future__ import division
 # Y. Litman 2017
 
+from builtins import range
+from past.utils import old_div
 import os
 import numpy as np
 import sys
@@ -114,13 +117,13 @@ if input_geo != 'None' or chk != 'None':
     # Make the rpc step
     #rpc = nm_rescale(2 * nbeads, 2 * nbeadsNew)
     #new_q = rpc.b1tob2(q2)[0:nbeadsNew]
-    rpc = nm_rescale(nbeads, nbeadsNew, np.asarray(range(natoms)))  # We use open path RPC
+    rpc = nm_rescale(nbeads, nbeadsNew, np.asarray(list(range(natoms))))  # We use open path RPC
     new_q = rpc.b1tob2(q)
 
     # Print
     out = open("NEW_INSTANTON.xyz", "w")
     for i in range(nbeadsNew):
-        atom.q = new_q[i] / unit_to_internal("length", "angstrom", 1.0)  # Go back to angstrom
+        atom.q = old_div(new_q[i], unit_to_internal("length", "angstrom", 1.0))  # Go back to angstrom
         print_file("xyz", atom, cell, out, title='cell{atomic_unit}  Traj: positions{angstrom}')
         # print_file("xyz",pos[0],cell,out,title='cell  }')
     out.close()
@@ -172,7 +175,7 @@ if input_hess != 'None' or chk != 'None':
     size2 = size0 * nbeadsNew
 
     new_h = np.zeros([size0, size2])
-    rpc = nm_rescale(nbeads, nbeadsNew, np.asarray(range(1)))  # We use open path RPC
+    rpc = nm_rescale(nbeads, nbeadsNew, np.asarray(list(range(1))))  # We use open path RPC
 
     for i in range(size0):
         for j in range(size0):
@@ -185,7 +188,7 @@ if input_hess != 'None' or chk != 'None':
 
     #new_h_half = new_h[:, 0:size2 / 2]
     #np.savetxt(out, new_h_half.reshape(1, new_h_half.size))
-    new_h_half = new_h[:, 0:size2 / 2]
+    new_h_half = new_h[:, 0:old_div(size2, 2)]
     np.savetxt(out, new_h.reshape(1, new_h.size))
 
     print('The new physical Hessian (half polymer) was generated')

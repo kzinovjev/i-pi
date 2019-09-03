@@ -10,12 +10,15 @@ close to the BZP implementation that we disabled it for the sake of simplicity.
 The original reference is:
 G. Martyna, A. Hughes and M. Tuckerman, J. Chem. Phys., 110, 3275.
 """
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import sys
 
@@ -199,7 +202,7 @@ class Barostat(dobject):
         # NOTE: In order to have a well-defined conserved quantity, the Nf kT term in the
         # diagonal stress estimator must be taken from the centroid kinetic energy.
         for i in range(3):
-            kst[i, i] += np.dot(pc[i:na3:3], pc[i:na3:3] / m) * self.beads.nbeads
+            kst[i, i] += np.dot(pc[i:na3:3], old_div(pc[i:na3:3], m)) * self.beads.nbeads
 
         return kst
 
@@ -228,7 +231,7 @@ class Barostat(dobject):
 
         if(level == self.nmtslevels - 1):
             for i in range(3):
-                kst[i, i] += np.dot(pc[i:na3:3], pc[i:na3:3] / m) * self.beads.nbeads
+                kst[i, i] += np.dot(pc[i:na3:3], old_div(pc[i:na3:3], m)) * self.beads.nbeads
 
         return kst
 
@@ -257,7 +260,7 @@ class Barostat(dobject):
 
         if(level == self.nmtslevels - 1):
             for i in range(3):
-                kst[i, i] += np.dot(pc[i:na3:3], pc[i:na3:3] / m) * self.beads.nbeads
+                kst[i, i] += np.dot(pc[i:na3:3], old_div(pc[i:na3:3], m)) * self.beads.nbeads
 
         return kst
 
@@ -289,11 +292,11 @@ class Barostat(dobject):
         if self.bias != None:
             bvir[:] = self.bias.vir
 
-        return (self.kstress + self.forces.virs + bvir) / self.cell.V
+        return old_div((self.kstress + self.forces.virs + bvir), self.cell.V)
 
     def get_stress_sc(self):
         """Calculates the high order part of the Suzuki-Chin internal stress tensor."""
-        return (self.kstress_sc + np.sum(dstrip(self.forces.virssc_part_2), axis=0)) / self.cell.V
+        return old_div((self.kstress_sc + np.sum(dstrip(self.forces.virssc_part_2), axis=0)), self.cell.V)
 
     def stress_mts_sc(self, level):
         """Calculates the internal Suzuki-Chin stress tensor
@@ -304,7 +307,7 @@ class Barostat(dobject):
         if (self.bias != None and level == 0):
             bvir[:] = self.bias.vir
 
-        return (self.kstress_mts_sc(level) + np.sum(self.forces.virs_mts(level) * (1 + self.forces.coeffsc_part_1).reshape((self.beads.nbeads, 1, 1)), axis=0) + bvir) / self.cell.V
+        return old_div((self.kstress_mts_sc(level) + np.sum(self.forces.virs_mts(level) * (1 + self.forces.coeffsc_part_1).reshape((self.beads.nbeads, 1, 1)), axis=0) + bvir), self.cell.V)
 
     def stress_mts(self, level):
         """Calculates the internal stress tensor
@@ -315,7 +318,7 @@ class Barostat(dobject):
         if (self.bias != None and level == 0):
             bvir[:] = self.bias.vir
 
-        return (self.kstress_mts(level) + self.forces.vir_mts(level) + bvir) / self.cell.V
+        return old_div((self.kstress_mts(level) + self.forces.vir_mts(level) + bvir), self.cell.V)
 
     def pstep(self, alpha=1.0):
         """Dummy momenta propagator step."""
@@ -455,22 +458,22 @@ class BaroBZP(Barostat):
             self.p += dt * 3.0 * (self.cell.V * (press - self.beads.nbeads * self.pext) + Constants.kb * self.temp)
 
             pc = dstrip(self.beads.pc)
-            fc = np.sum(dstrip(self.forces.forces_mts(level)), axis=0) / self.beads.nbeads
+            fc = old_div(np.sum(dstrip(self.forces.forces_mts(level)), axis=0), self.beads.nbeads)
             m = dstrip(self.beads.m3)[0]
 
-            self.p += (dt2 * np.dot(pc, fc / m) + dt3 * np.dot(fc, fc / m)) * self.beads.nbeads
+            self.p += (dt2 * np.dot(pc, old_div(fc, m)) + dt3 * np.dot(fc, old_div(fc, m))) * self.beads.nbeads
 
     def qcstep(self):
         """Propagates the centroid position and momentum and the volume."""
 
-        v = self.p[0] / self.m[0]
+        v = old_div(self.p[0], self.m[0])
         halfdt = self.qdt  # this is set to half the inner loop in all integrators that use a barostat
         expq, expp = (np.exp(v * halfdt), np.exp(-v * halfdt))
 
         m = dstrip(self.beads.m3)[0]
 
         self.nm.qnm[0, :] *= expq
-        self.nm.qnm[0, :] += ((expq - expp) / (2.0 * v)) * (dstrip(self.nm.pnm)[0, :] / m)
+        self.nm.qnm[0, :] += (old_div((expq - expp), (2.0 * v))) * (old_div(dstrip(self.nm.pnm)[0, :], m))
         self.nm.pnm[0, :] *= expp
 
         self.cell.h *= expq
@@ -590,7 +593,7 @@ class BaroSCBZP(Barostat):
 
         # integrates with respect to the "high order" part of the stress with a timestep of dt /2
         press = np.trace(self.stress_sc) / 3.0
-        self.p += self.dt / 2 * 3.0 * (self.cell.V * press)
+        self.p += old_div(self.dt, 2 * 3.0 * (self.cell.V * press))
 
     def pstep(self, level=0):
         """Propagates the momentum of the barostat."""
@@ -611,22 +614,22 @@ class BaroSCBZP(Barostat):
             press = 0
             self.p += dt * 3.0 * (self.cell.V * (press - self.beads.nbeads * self.pext) + Constants.kb * self.temp)
             pc = dstrip(self.beads.pc)
-            fc = np.sum(dstrip(self.forces.forces_mts(level)) * (1 + self.forces.coeffsc_part_1), axis=0) / self.beads.nbeads
+            fc = old_div(np.sum(dstrip(self.forces.forces_mts(level)) * (1 + self.forces.coeffsc_part_1), axis=0), self.beads.nbeads)
             m = dstrip(self.beads.m3)[0]
 
-            self.p += (dt2 * np.dot(pc, fc / m) + dt3 * np.dot(fc, fc / m)) * self.beads.nbeads
+            self.p += (dt2 * np.dot(pc, old_div(fc, m)) + dt3 * np.dot(fc, old_div(fc, m))) * self.beads.nbeads
 
     def qcstep(self):
         """Propagates the centroid position and momentum and the volume."""
 
-        v = self.p[0] / self.m[0]
+        v = old_div(self.p[0], self.m[0])
         halfdt = self.qdt  # this is set to half the inner loop in all integrators that use a barostat
         expq, expp = (np.exp(v * halfdt), np.exp(-v * halfdt))
 
         m = dstrip(self.beads.m3)[0]
 
         self.nm.qnm[0, :] *= expq
-        self.nm.qnm[0, :] += ((expq - expp) / (2.0 * v)) * (dstrip(self.nm.pnm)[0, :] / m)
+        self.nm.qnm[0, :] += (old_div((expq - expp), (2.0 * v))) * (old_div(dstrip(self.nm.pnm)[0, :], m))
         self.nm.pnm[0, :] *= expp
 
         self.cell.h *= expq
@@ -787,7 +790,7 @@ class BaroRGB(Barostat):
         m = dstrip(self.beads.m3)[0].reshape(self.beads.natoms, 3)
 
         hh0 = np.dot(self.cell.h, self.h0.ih)
-        pi_ext = np.dot(hh0, np.dot(self.stressext, hh0.T)) * self.h0.V / self.cell.V
+        pi_ext = old_div(np.dot(hh0, np.dot(self.stressext, hh0.T)) * self.h0.V, self.cell.V)
         L = np.diag([3, 2, 1])
 
         stress = dstrip(self.stress_mts(level))
@@ -799,24 +802,24 @@ class BaroRGB(Barostat):
             self.p += dt * (self.cell.V * np.triu(-self.beads.nbeads * pi_ext) + Constants.kb * self.temp * L)
 
             pc = dstrip(self.beads.pc).reshape(self.beads.natoms, 3)
-            fc = np.sum(dstrip(self.forces.forces_mts(level)), axis=0).reshape(self.beads.natoms, 3) / self.beads.nbeads
-            fcTonm = (fc / dstrip(self.beads.m3)[0].reshape(self.beads.natoms, 3)).T
+            fc = old_div(np.sum(dstrip(self.forces.forces_mts(level)), axis=0).reshape(self.beads.natoms, 3), self.beads.nbeads)
+            fcTonm = (old_div(fc, dstrip(self.beads.m3)[0].reshape(self.beads.natoms, 3))).T
 
             self.p += np.triu(dt2 * np.dot(fcTonm, pc) + dt3 * np.dot(fcTonm, fc)) * self.beads.nbeads
 
     def qcstep(self):
         """Propagates the centroid position and momentum and the volume."""
 
-        v = self.p / self.m[0]
+        v = old_div(self.p, self.m[0])
         halfdt = self.qdt
         expq, expp = (matrix_exp(v * halfdt), matrix_exp(-v * halfdt))
 
         m = dstrip(self.beads.m)
 
-        sinh = np.dot(invert_ut3x3(v), (expq - expp) / (2.0))
+        sinh = np.dot(invert_ut3x3(v), old_div((expq - expp), (2.0)))
         for i in range(self.beads.natoms):
             self.nm.qnm[0, 3 * i:3 * (i + 1)] = np.dot(expq, self.nm.qnm[0, 3 * i:3 * (i + 1)])
-            self.nm.qnm[0, 3 * i:3 * (i + 1)] += np.dot(sinh, dstrip(self.nm.pnm)[0, 3 * i:3 * (i + 1)] / m[i])
+            self.nm.qnm[0, 3 * i:3 * (i + 1)] += np.dot(sinh, old_div(dstrip(self.nm.pnm)[0, 3 * i:3 * (i + 1)], m[i]))
             self.nm.pnm[0, 3 * i:3 * (i + 1)] = np.dot(expp, self.nm.pnm[0, 3 * i:3 * (i + 1)])
 
         self.cell.h = np.dot(expq, self.cell.h)

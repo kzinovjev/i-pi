@@ -44,7 +44,14 @@ changed. For example: using the command "i-pi-driver -u -m zundel -h zundel"
 would only replace the first string "zundel" and cause an error.
 """
 from __future__ import print_function
+from __future__ import division
 
+from builtins import input
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import sys
 import re
 import time
@@ -146,7 +153,7 @@ def main():
             sys.exit(str(e))
 
 
-class TestCase:
+class TestCase(object):
 
     """
     Stores test case, paths to original files which define a regtest.
@@ -206,7 +213,7 @@ class TestCase:
         shutil.rmtree(self.reference_dir)
 
 
-class Counter:
+class Counter(object):
 
     """
     Counter class for attributing socket numbers.
@@ -219,7 +226,7 @@ class Counter:
         return socket
 
 
-class TestInstance:
+class TestInstance(object):
 
     """
     Stores test instance which is build from a test case.
@@ -444,7 +451,7 @@ class TestInstance:
         return output.compare(reference)
 
 
-class TestOutput:
+class TestOutput(object):
 
     """
     Stores paths to test outputs.
@@ -513,7 +520,7 @@ class TestOutput:
             shutil.copy(file, path)
 
 
-class ComparisonResult:
+class ComparisonResult(object):
 
     """
     Stores result of comparing two output files.
@@ -558,7 +565,7 @@ class ComparisonResult:
         return (len(self.list_of_differences) == 0)
 
 
-class TestCandidate:
+class TestCandidate(object):
 
     """
     Contains valid candidates for TestCase.
@@ -581,7 +588,7 @@ class TestCandidate:
             raise ValueError('Not a valid xml test')
 
 
-class Parameters:
+class Parameters(object):
 
     """
     Set of global parameters
@@ -866,8 +873,8 @@ def get_output_filenames(xml_path):
                 for _bi in range(nbeads):
                     # zero-padded bead number
                     padb = (('%0' + str(int(1 +
-                                            np.floor(np.log(nbeads) /
-                                                     np.log(10)))) +
+                                            np.floor(old_div(np.log(nbeads),
+                                                     np.log(10))))) +
                              'd') % (_bi))
 
                     for _ss in simul.syslist:
@@ -943,7 +950,7 @@ def answer_is_y():
 
     _yes = ['yes', 'y']
     _no = ['no', 'n']
-    answer = raw_input()
+    answer = input()
     if answer.lower() in _yes:
         return True
     elif answer.lower() in _no:

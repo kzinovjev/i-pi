@@ -6,6 +6,7 @@ from __future__ import print_function
 # See the "licenses" directory for full license information.
 
 
+from builtins import range
 import os.path
 import sys
 import re
@@ -85,7 +86,7 @@ class InputSysTemplate(Input):
                 sys = template
                 if len(labels) != len(ins):
                     raise ValueError("Labels and instance length mismatch")
-                for l in xrange(len(ins)):  # string replacement within the template
+                for l in range(len(ins)):  # string replacement within the template
                     sys = sys.replace(labels[l], ins[l])
                 print("Generating system from template: \n", sys)
                 xsys = xml_parse_string(sys)  # parses the string to an XML object

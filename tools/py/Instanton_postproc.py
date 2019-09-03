@@ -1,5 +1,8 @@
 #!/usr/bin/env python2
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import sys
 import os
@@ -141,7 +144,7 @@ def get_rp_freq(w0, nbeads, temp, mode='rate'):
         defined by the frequencies w0. """
     hbar = 1.0
     kb = 1
-    betaP = 1 / (kb * nbeads * temp)
+    betaP = old_div(1, (kb * nbeads * temp))
     factor = (betaP * hbar)
     w = 0.0
     ww = []
@@ -161,7 +164,7 @@ def get_rp_freq(w0, nbeads, temp, mode='rate'):
             for k in range(nbeads):
                 if w0[n] == 0 and k == 0:
                     continue
-                w += np.log(factor * np.sqrt(4. / (betaP * hbar)**2 * np.sin(np.absolute(k) * np.pi / nbeads)**2 + w0[n]))
+                w += np.log(factor * np.sqrt(4. / (betaP * hbar)**2 * np.sin(old_div(np.absolute(k) * np.pi, nbeads))**2 + w0[n]))
                 # note the w0 is the eigenvalue ( the square of the frequency )
         return w
 
@@ -169,7 +172,7 @@ def get_rp_freq(w0, nbeads, temp, mode='rate'):
         for n in range(w0.size):
             for k in range(nbeads):
                 # note the w0 is the eigenvalue ( the square of the frequency )
-                ww = np.append(ww, np.sqrt(4. / (betaP * hbar)**2 * np.sin((k + 1) * np.pi / (2 * nbeads + 2))**2 + w0[n]))
+                ww = np.append(ww, np.sqrt(4. / (betaP * hbar)**2 * np.sin(old_div((k + 1) * np.pi, (2 * nbeads + 2)))**2 + w0[n]))
         return np.array(ww)
     else:
         print("We can't indentify the mode")
@@ -235,24 +238,24 @@ elif case == 'instanton':
         print('Overwriting energy shift with the provided values')
         V0 = V00 * eV2au
 
-    if np.absolute(temp - temp2) / K2au > 2:
+    if old_div(np.absolute(temp - temp2), K2au) > 2:
         print(' ')
         print('Mismatch between provided temperature and temperature in the calculation')
         sys.exit()
     print('The instanton mode is %s' % mode)
-    print('The temperature is %f K' % (temp / K2au))
+    print('The temperature is %f K' % (old_div(temp, K2au)))
 
     if mode == 'rate':
         h0 = red2comp(hessian, nbeads, natoms)
         pos, nbeads, hessian2 = get_double(beads.q, nbeads, natoms, h0)
         hessian = hessian2
         m3 = np.concatenate((beads.m3, beads.m3), axis=0)
-        omega2 = (temp * nbeads * kb / hbar) ** 2
+        omega2 = (old_div(temp * nbeads * kb, hbar)) ** 2
         if not quiet:
             spring = SpringMapper.spring_hessian(natoms, nbeads, beads.m3[0], omega2, mode='full')
             h = np.add(hessian, spring)
         print('The full ring polymer is made of %i' % (nbeads))
-        print('We used %i beads in the calculation.' % (nbeads / 2))
+        print('We used %i beads in the calculation.' % (old_div(nbeads, 2)))
     elif mode == 'splitting':
         if input_freq == None:
             print('Please provide a name of the file containing the list of the frequencies for the minimum using "-freq" flag')
@@ -262,7 +265,7 @@ elif case == 'instanton':
         print('Our linear polymer has  %i' % (nbeads))
         pos = beads.q
         m3 = beads.m3
-        omega2 = (temp * nbeads * kb / hbar) ** 2
+        omega2 = (old_div(temp * nbeads * kb, hbar)) ** 2
         # spring  = SpringMapper.spring_hessian(natoms,nbeads,beads.m3[0],omega2,mode='half')
         if not quiet:
             h0 = red2comp(hessian, nbeads, natoms)
@@ -287,13 +290,13 @@ if not quiet:
     print('Diagonalization....')
     d, w, detI = clean_hessian(h, pos, natoms, nbeads, m, m3, asr, mofi=True)
     print("Final lowest 15 frequencies (cm^-1)")
-    print(np.sign(d[0:15]) * np.absolute(d[0:15]) ** 0.5 / cm2au)  # convert to cm^-1
+    print(old_div(np.sign(d[0:15]) * np.absolute(d[0:15]) ** 0.5, cm2au))  # convert to cm^-1
 
 if case == 'reactant':
-    Qtras = ((np.sum(m)) / (2 * np.pi * beta * hbar**2))**1.5
+    Qtras = (old_div((np.sum(m)), (2 * np.pi * beta * hbar**2)))**1.5
 
     if asr == 'poly':
-        Qrot = (8 * np.pi * detI / ((hbar)**6 * (beta)**3))**0.5
+        Qrot = (old_div(8 * np.pi * detI, ((hbar)**6 * (beta)**3)))**0.5
     else:
         Qrot = 1.0
 
@@ -322,45 +325,45 @@ if case == 'reactant':
     print('A file with the frequencies in atomic units was generated')
 
 elif case == 'TS':
-    Qtras = ((np.sum(m)) / (2 * np.pi * beta * hbar**2))**1.5
+    Qtras = (old_div((np.sum(m)), (2 * np.pi * beta * hbar**2)))**1.5
 
     if asr == 'poly':
-        Qrot = (8 * np.pi * detI / ((hbar)**6 * (beta)**3))**0.5
+        Qrot = (old_div(8 * np.pi * detI, ((hbar)**6 * (beta)**3)))**0.5
     else:
         Qrot = 1.0
 
-    print('Note: Deleted frequency for computing Qvib  %f cm^-1' % (np.sign(d[0]) * np.absolute(d[0]) ** 0.5 / cm2au))
+    print('Note: Deleted frequency for computing Qvib  %f cm^-1' % (old_div(np.sign(d[0]) * np.absolute(d[0]) ** 0.5, cm2au)))
     logQvib = -np.sum(np.log(2 * np.sinh((beta * hbar * np.sqrt(np.delete(d, 0)) / 2.0))))
 
     U = (pots.sum() - V0)
 
     print('')
     print('We are done')
-    print('Partition functions at %f K' % (temp / K2au))
+    print('Partition functions at %f K' % (old_div(temp, K2au)))
     print('')
     print('Qtras: %f bohr^-3' % (Qtras))
     print('Qrot: %f' % (Qrot))
     print('logQvib: %f' % (logQvib))
-    print('Potential energy at TS:  %f eV, V/kBT %f' % ((U) / eV2au, U / (kb * temp)))
+    print('Potential energy at TS:  %f eV, V/kBT %f' % (old_div((U), eV2au), old_div(U, (kb * temp))))
     print('')
 
 elif case == 'instanton':
 
     if mode == 'rate':
-        Qtras = ((np.sum(m)) / (2 * np.pi * beta * hbar**2))**1.5
+        Qtras = (old_div((np.sum(m)), (2 * np.pi * beta * hbar**2)))**1.5
 
         if asr == 'poly' and not quiet:
             print(detI, hbar, (betaP), nbeads)  # Compute Qrot
-            Qrot = (8 * np.pi * detI / ((hbar)**6 * (betaP)**3))**0.5 / (nbeads)**3  # Compute Qrot
+            Qrot = old_div((old_div(8 * np.pi * detI, ((hbar)**6 * (betaP)**3)))**0.5, (nbeads)**3)  # Compute Qrot
         else:
             Qrot = 1.0
 
         if not quiet:
-            print('Note: Deleted frequency for computing Qvib  %f cm^-1' % (np.sign(d[1]) * np.absolute(d[1]) ** 0.5 / cm2au))
+            print('Note: Deleted frequency for computing Qvib  %f cm^-1' % (old_div(np.sign(d[1]) * np.absolute(d[1]) ** 0.5, cm2au)))
             if asr != 'poly':
                 print('WARNING asr != poly')
                 print('First 10 eigenvalues')
-                print (np.sign(d[0:10]) * np.absolute(d[0:10]) ** 0.5 / cm2au)
+                print (old_div(np.sign(d[0:10]) * np.absolute(d[0:10]) ** 0.5, cm2au))
                 print("Please check that this you don't have any unwanted zero frequency")
             logQvib = -np.sum(np.log(betaP * hbar * np.sqrt(np.absolute(np.delete(d, 1))))) + 6 * np.log(nbeads) + np.log(nbeads)
         else:
@@ -368,15 +371,15 @@ elif case == 'instanton':
 
         BN = 2 * np.sum(beads.m3[1:, :] * (beads.q[1:, :] - beads.q[:-1, :])**2)
         factor = 1.0000  # default
-        action1 = (2 * pots.sum() * factor - nbeads * V0) * 1. / (temp * nbeads * kb)
-        action2 = spring_pot(nbeads, pos, omega2, m3) / (temp * nbeads * kb)
+        action1 = old_div((2 * pots.sum() * factor - nbeads * V0) * 1., (temp * nbeads * kb))
+        action2 = old_div(spring_pot(nbeads, pos, omega2, m3), (temp * nbeads * kb))
 
         print('')
         print('')
         print('We are done')
         print('Nbeads %i' % (nbeads))
-        print('(diff only %i)' % (nbeads / 2))
-        print('1/(betaP*hbar): %f a.u.' % (1 / (betaP * hbar)))
+        print('(diff only %i)' % (old_div(nbeads, 2)))
+        print('1/(betaP*hbar): %f a.u.' % (old_div(1, (betaP * hbar))))
         print('BN %f     ' % BN)
         print('BN*N %f   ' % (BN * nbeads))
 
@@ -402,10 +405,10 @@ elif case == 'instanton':
         ww = get_rp_freq(d_min, nbeads, temp, mode='splitting')
         react = np.sum(np.log(ww))
 
-        action1 = (pots.sum() - nbeads * V0) * 1 / (temp * nbeads * kb)
-        action2 = spring_pot(nbeads, pos, omega2, m3) / (temp * nbeads * kb)
+        action1 = old_div((pots.sum() - nbeads * V0) * 1, (temp * nbeads * kb))
+        action2 = old_div(spring_pot(nbeads, pos, omega2, m3), (temp * nbeads * kb))
         action = action1 + action2
-        if action / hbar > 5.0:
+        if old_div(action, hbar) > 5.0:
             print('WARNING, S/h seems to big. Probably a proper energy shift is missing.')
 
         BN = np.sum(beads.m3[1:, :] * (beads.q[1:, :] - beads.q[:-1, :])**2)
@@ -416,9 +419,9 @@ elif case == 'instanton':
         else:
             phi = 1
 
-        tetaphi = betaP * hbar * np.sqrt(action / (2 * hbar * np.pi)) * np.exp(-action / hbar)
-        teta = tetaphi / phi
-        h = -teta / betaP
+        tetaphi = betaP * hbar * np.sqrt(old_div(action, (2 * hbar * np.pi))) * np.exp(old_div(-action, hbar))
+        teta = old_div(tetaphi, phi)
+        h = old_div(-teta, betaP)
         # cm2au= (2 * np.pi * 3e10 * 2.4188843e-17)
 
         print('')
@@ -426,18 +429,18 @@ elif case == 'instanton':
         print('We are done')
         print('Nbeads %i, betaP %f a.u.,hbar %f a.u' % (nbeads, betaP, hbar))
         print('')
-        print('V0  %f eV ( %f Kcal/mol) ' % (V0 / eV2au, V0 / cal2au / 1000))
-        print('S1/hbar %f ,S2/hbar %f ,S/hbar %f' % (action1 / hbar, action2 / hbar, action / hbar))
+        print('V0  %f eV ( %f Kcal/mol) ' % (old_div(V0, eV2au), old_div(V0, cal2au / 1000)))
+        print('S1/hbar %f ,S2/hbar %f ,S/hbar %f' % (old_div(action1, hbar), old_div(action2, hbar), old_div(action, hbar)))
         print('')
         print('BN %f a.u.' % BN)
-        print('BN/(hbar^2 * betaN)  %f  (should be same as S/hbar) ' % (BN / ((hbar**2) * betaP)))
+        print('BN/(hbar^2 * betaN)  %f  (should be same as S/hbar) ' % (old_div(BN, ((hbar**2) * betaP))))
         print('')
         if quiet:
             print('phi is not computed because you specified the quiet option')
             print('We can provied only Tetaphi which value is %f a.u. ' % (tetaphi))
         else:
-            print('phi %f a.u.   Teta %f a.u. ' % (phi, tetaphi / phi))
-            print('Tunnelling splitting matrix element (h)  %f a.u (%f cm^-1)' % (h, h / cm2au))
+            print('phi %f a.u.   Teta %f a.u. ' % (phi, old_div(tetaphi, phi)))
+            print('Tunnelling splitting matrix element (h)  %f a.u (%f cm^-1)' % (h, old_div(h, cm2au)))
     else:
         print('We can not recongnize the mode.')
         sys.exit()

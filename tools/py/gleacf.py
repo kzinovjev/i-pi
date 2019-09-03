@@ -18,8 +18,12 @@ Syntax:
    trimsim.py inputfile.xml
 """
 from __future__ import print_function
+from __future__ import division
 
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys
 import os
 import argparse
@@ -78,8 +82,8 @@ def Cqp(omega0, idAqp, idDqp):
     a, O = np.linalg.eig(dAqp)
     O1 = np.linalg.inv(O)
     W = np.dot(np.dot(O1, dDqp), O1.T)
-    for i in xrange(len(W)):
-        for j in xrange(len(W)):
+    for i in range(len(W)):
+        for j in range(len(W)):
             W[i, j] /= (a[i] + a[j])
     nC = np.real(np.dot(O, np.dot(W, O.T)))
 
@@ -102,8 +106,8 @@ def gleKernel(omega, Ap, Dp):
     # outer loop over the physical frequency
     for omega_0 in omlist:
         # works in "scaled coordinates" to stabilize the machinery for small or large omegas
-        dAqp = Aqp(omega_0, Ap) / omega_0
-        dDqp = Dqp(omega_0, Dp) / omega_0
+        dAqp = old_div(Aqp(omega_0, Ap), omega_0)
+        dDqp = old_div(Dqp(omega_0, Dp), omega_0)
         dCqp = Cqp(omega_0, dAqp, dDqp)
         if dAqp[1, 1] < 2.0 * dw / omega_0:
             dAqp[1, 1] = 2.0 * dw / omega_0
@@ -113,16 +117,16 @@ def gleKernel(omega, Ap, Dp):
         w2, O = np.linalg.eig(dAqp2); w = np.sqrt(w2)
         O1 = np.linalg.inv(O)
 
-        ow1 = O[1, :] * w / omega_0
+        ow1 = old_div(O[1, :] * w, omega_0)
         o1cqp1 = np.dot(O1, dCqp)[:, 1]
         x = 0
-        om2om0 = om2list / omega_0**2
+        om2om0 = old_div(om2list, omega_0**2)
         # keeps working in scaled coordinates at this point
         for oo0x in om2om0:
-            dKer[x, y] = np.real(np.dot(ow1, o1cqp1 / (w2 + oo0x)))
+            dKer[x, y] = np.real(np.dot(ow1, old_div(o1cqp1, (w2 + oo0x))))
             x += 1
         y += 1
-    return dKer * dw * 2.0 / np.pi
+    return old_div(dKer * dw * 2.0, np.pi)
 
 
 def ISRA(omega, ker, y, dparam, oprefix):
@@ -137,7 +141,7 @@ def ISRA(omega, ker, y, dparam, oprefix):
     npad = int(np.log10(steps) + 1)
 
     for i in range(steps):
-        f = f * np.dot(CT, y) / np.dot(CTC, f)
+        f = old_div(f * np.dot(CT, y), np.dot(CTC, f))
         if(np.fmod(i, stride) == 0 and i != 0):
             cnvg = np.asarray((np.linalg.norm((np.dot(f, ker) - y))**2, np.linalg.norm(np.gradient(np.gradient(f)))**2))
             dcomm = "# error, laplacian =   " + str(cnvg[0]) + ", " + str(cnvg[1])
@@ -169,11 +173,11 @@ def gleacf(path2ixml, path2iA, path2iC, path2ifacf, oprefix, action, nrows, stri
 
         if(ttype == "ThermoGLE"):
             Ap = simul.syslist[0].motion.thermostat.A * tscale
-            Cp = simul.syslist[0].motion.thermostat.C / kbT
+            Cp = old_div(simul.syslist[0].motion.thermostat.C, kbT)
             Dp = np.dot(Ap, Cp) + np.dot(Cp, Ap.T)
         elif(ttype == "ThermoNMGLE"):
             Ap = simul.syslist[0].motion.thermostat.A[0] * tscale
-            Cp = simul.syslist[0].motion.thermostat.C[0] / kbT
+            Cp = old_div(simul.syslist[0].motion.thermostat.C[0], kbT)
             Dp = np.dot(Ap, Cp) + np.dot(Cp, Ap.T)
         elif(ttype == "ThermoLangevin" or ttype == "ThermoPILE_L"):
             Ap = np.asarray([1.0 / simul.syslist[0].motion.thermostat.tau]).reshape((1, 1)) * tscale 

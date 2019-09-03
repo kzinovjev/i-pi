@@ -3,12 +3,16 @@ Contains classes for instanton  calculations.
 
 Algorithms implemented by Yair Litman and Mariana Rossi, 2017
 """
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import numpy as np
 import time
 
@@ -209,9 +213,9 @@ class SpringMapper(object):
         self.dbeads = dumop.beads.copy()
         self.temp = dumop.temp
         if dumop.mode == 'rate':
-            self.omega2 = (self.temp * (2 * self.dbeads.nbeads) * units.Constants.kb / units.Constants.hbar) ** 2
+            self.omega2 = (old_div(self.temp * (2 * self.dbeads.nbeads) * units.Constants.kb, units.Constants.hbar)) ** 2
         elif dumop.mode == 'splitting':
-            self.omega2 = (self.temp * (self.dbeads.nbeads) * units.Constants.kb / units.Constants.hbar) ** 2
+            self.omega2 = (old_div(self.temp * (self.dbeads.nbeads) * units.Constants.kb, units.Constants.hbar)) ** 2
 
         if dumop.opt == 'nichols' or dumop.opt == 'NR':
             self.h = self.spring_hessian(self.dbeads.natoms, self.dbeads.nbeads, self.dbeads.m3[0], self.omega2)
@@ -392,11 +396,11 @@ class DummyOptimizer(dobject):
         #print >>f, ' '
         # f.close()
 
-        info(' @Exit step: Energy difference: %.1e, (condition: %.1e)' % (np.absolute((fx - fx0) / self.beads.natoms), self.tolerances["energy"]), verbosity.low)
+        info(' @Exit step: Energy difference: %.1e, (condition: %.1e)' % (np.absolute(old_div((fx - fx0), self.beads.natoms)), self.tolerances["energy"]), verbosity.low)
         info(' @Exit step: Maximum force component: %.1e, (condition: %.1e)' % (np.amax(np.absolute(self.forces.f + self.im.f)), self.tolerances["force"]), verbosity.low)
         info(' @Exit step: Maximum component step component: %.1e, (condition: %.1e)' % (x, self.tolerances["position"]), verbosity.low)
 
-        if (np.absolute((fx - fx0) / self.beads.natoms) <= self.tolerances["energy"]) \
+        if (np.absolute(old_div((fx - fx0), self.beads.natoms)) <= self.tolerances["energy"]) \
                 and ((np.amax(np.absolute(self.forces.f + self.im.f)) <= self.tolerances["force"]) or
                      (np.linalg.norm(self.forces.f.flatten() - self.old_f.flatten()) <= 1e-08)) \
                 and (x <= self.tolerances["position"]):
@@ -566,7 +570,7 @@ def Instanton(x0, f0, f1, h, update, asr, im, gm, big_step, opt, m, omaker):
     info(" @Instanton: Current step norm = %g" % d_x_max, verbosity.medium)
     if np.amax(np.absolute(d_x)) > big_step:
         info(" @Instanton: Attempted step norm = %g, scaled down to %g" % (d_x_max, big_step), verbosity.low)
-        d_x *= big_step / np.amax(np.absolute(d_x_max))
+        d_x *= old_div(big_step, np.amax(np.absolute(d_x_max)))
 
     # Make movement and get new energy (u)  and forces(f) using mapper
     x = x0 + d_x
@@ -669,7 +673,7 @@ class LBFGSOptimizer(DummyOptimizer):
         # Specific for LBFGS
         if np.linalg.norm(self.d) == 0.0:
             f = self.forces.f + self.im.f  # ALBERTO1
-            self.d += dstrip(f) / np.sqrt(np.dot(f.flatten(), f.flatten()))
+            self.d += old_div(dstrip(f), np.sqrt(np.dot(f.flatten(), f.flatten())))
 
         if (self.old_x == np.zeros((self.beads.nbeads, 3 * self.beads.natoms), float)).all():
             self.old_x[:] = self.beads.q

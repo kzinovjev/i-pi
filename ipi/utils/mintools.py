@@ -53,9 +53,12 @@ Functions:
         Simons, J. and Nichols, J. (1990), Int. J. Quantum Chem., 38: 263-276. doi: 10.1002/qua.560382427
 """
 from __future__ import print_function
+from __future__ import division
 
 # TODO: CLEAN UP BFGS, L-BFGS, L-BFGS_nls TO NOT EXIT WITHIN MINTOOLS.PY BUT USE UNIVERSAL SOFTEXIT
 
+from builtins import range
+from past.utils import old_div
 __all__ = ["min_brent"]
 
 import numpy as np
@@ -115,7 +118,7 @@ def bracket(fdf, fdf0=None, x0=0.0, init_step=1.0e-3):
     while fb > fc:
         r = (bx - ax) * (fb - fc)
         q = (bx - cx) * (fb - fa)
-        u = bx - ((bx - cx) * q - (bx - ax) * r) / (2.0 * math.copysign(max(abs(q - r), tiny), (q - r)))  # Point from parabolic fit
+        u = bx - old_div(((bx - cx) * q - (bx - ax) * r), (2.0 * math.copysign(max(abs(q - r), tiny), (q - r))))  # Point from parabolic fit
         ulim = bx + glimit * (cx - bx)  # Limit for parabolic fit point; *Can test various possibilities*
 
         # Find minimums between b and c or a and u
@@ -263,9 +266,9 @@ def min_brent(fdf, fdf0, x0, tol, itmax, init_step):
 
             # Secant method with both d points (find zero point of derivative)
             if dfw != dfx:
-                d1 = (w - x) * dfx / (dfx - dfw)
+                d1 = old_div((w - x) * dfx, (dfx - dfw))
             if dfv != dfx:
-                d2 = (v - x) * dfx / (dfx - dfv)
+                d2 = old_div((v - x) * dfx, (dfx - dfv))
 
             # Choose estimate based on derivative at x and move distance on step
             # before last
@@ -394,7 +397,7 @@ def min_approx(fdf, x0, fdf0, d0, big_step, tol, itmax):
     n = len(x0.flatten())
     if fdf0 is None: fdf0 = fdf(x0)
     f0, df0 = fdf0
-    if d0 is None: d0 = -df0 / np.sqrt(np.dot(df0.flatten(), df0.flatten()))
+    if d0 is None: d0 = old_div(-df0, np.sqrt(np.dot(df0.flatten(), df0.flatten())))
     x = np.zeros(n)
     alf = 1.0e-4
 
@@ -404,7 +407,7 @@ def min_approx(fdf, x0, fdf0, d0, big_step, tol, itmax):
     # Scale if attempted step is too large
     if stepsum > big_step:
         info(" @MINIMIZE: Scaled step size for line search", verbosity.debug)
-        d0 = np.multiply(d0, big_step / stepsum)
+        d0 = np.multiply(d0, old_div(big_step, stepsum))
 
     slope = np.dot(df0.flatten(), d0.flatten())
 
@@ -414,7 +417,7 @@ def min_approx(fdf, x0, fdf0, d0, big_step, tol, itmax):
     test = np.amax(np.divide(np.absolute(d0.flatten()), np.maximum(np.absolute(x0.flatten()), np.ones(n))))
 
     # Setup to try Newton step first
-    alamin = tol / test
+    alamin = old_div(tol, test)
     alam = 1.0
 
     # Minimization Loop
@@ -441,7 +444,7 @@ def min_approx(fdf, x0, fdf0, d0, big_step, tol, itmax):
 
             # First backtrack
             if alam == 1.0:
-                tmplam = -slope / (2.0 * (fx - f0 - slope))
+                tmplam = old_div(-slope, (2.0 * (fx - f0 - slope)))
 
             # Subsequent backtracks
             # coefficient should lie between 0.1*alam and 0.5*alam (= 0.1*lambda_1 and 0.5*lambda_1),
@@ -449,10 +452,10 @@ def min_approx(fdf, x0, fdf0, d0, big_step, tol, itmax):
             else:
                 rhs1 = fx - f0 - alam * slope
                 rhs2 = f2 - f0 - alam2 * slope
-                a = (rhs1 / (alam * alam) - rhs2 / (alam2 * alam2)) / (alam - alam2)
-                b = (-alam2 * rhs1 / (alam * alam) + alam * rhs2 / (alam2 * alam2)) / (alam - alam2)
+                a = old_div((old_div(rhs1, (alam * alam)) - old_div(rhs2, (alam2 * alam2))), (alam - alam2))
+                b = old_div((old_div(-alam2 * rhs1, (alam * alam)) + old_div(alam * rhs2, (alam2 * alam2))), (alam - alam2))
                 if a == 0.0:
-                    tmplam = -slope / (2.0 * b)
+                    tmplam = old_div(-slope, (2.0 * b))
 
                 else:
                     disc = b * b - 3.0 * a * slope
@@ -460,10 +463,10 @@ def min_approx(fdf, x0, fdf0, d0, big_step, tol, itmax):
                         tmplam = 0.5 * alam
 
                     elif b <= 0.0:
-                        tmplam = (-b + np.sqrt(disc)) / (3.0 * a)
+                        tmplam = old_div((-b + np.sqrt(disc)), (3.0 * a))
 
                     else:
-                        tmplam = -slope / (b + np.sqrt(disc))
+                        tmplam = old_div(-slope, (b + np.sqrt(disc)))
 
                     # Coefficient less than 0.5 * lambda_1
                     if tmplam > (0.5 * alam):
@@ -573,9 +576,9 @@ def BFGSTRM(x0, u0, f0, h0, tr, mapper, big_step):
         d_x_norm = np.linalg.norm(d_x)
 
         if d_x_norm > 0.05:
-            quality = true_gain / expected_gain
+            quality = old_div(true_gain, expected_gain)
         else:
-            quality = harmonic_gain / expected_gain
+            quality = old_div(harmonic_gain, expected_gain)
         accept = (quality > 0.1)
 
         # Update TrustRadius (tr)
@@ -608,11 +611,11 @@ def TRM_UPDATE(dx, df, h):
 
     # JCP, 117,9160. Eq 44
     h1 = np.dot(dg, dg_t)
-    h1 = h1 / (np.dot(dg_t, dx))
+    h1 = old_div(h1, (np.dot(dg_t, dx)))
     h2a = np.dot(h, dx)
     h2b = np.dot(dx_t, h)
     h2 = np.dot(h2a, h2b)
-    h2 = h2 / np.dot(dx_t, h2a)
+    h2 = old_div(h2, np.dot(dx_t, h2a))
 
     h += h1 - h2
 
@@ -664,7 +667,7 @@ def min_trm(f, h, tr):
 
     for i in range(0, ndim):
         if np.absolute(d[i]) > 0.00001:
-            DXE[i] = gE[i] / d[i]
+            DXE[i] = old_div(gE[i], d[i])
 
     min_d = np.amin(d)
 
@@ -684,11 +687,11 @@ def min_trm(f, h, tr):
     lamb = min(lamb_min + 0.5, 0.5 * (lamb_min + lamb_max))
 
     for i in range(0, 100):
-        DXE = gE / (d + lamb)
+        DXE = old_div(gE, (d + lamb))
         y = np.sum(DXE**2) - tr**2
-        dy = -2.0 * np.sum((DXE**2) / (d + lamb))
+        dy = -2.0 * np.sum(old_div((DXE**2), (d + lamb)))
 
-        if np.absolute(y / dy) < 0.00001 or np.absolute(y) < 1e-13:
+        if np.absolute(old_div(y, dy)) < 0.00001 or np.absolute(y) < 1e-13:
             break
 
         if y < 0.0:
@@ -699,7 +702,7 @@ def min_trm(f, h, tr):
         if dy > 0.0 or lamb_min > lamb_max:
             print('Problem in find. II')
 
-        lamb = lamb - y / dy
+        lamb = lamb - old_div(y, dy)
         if lamb <= lamb_min or lamb >= lamb_max:
             lamb = 0.5 * (lamb_min + lamb_max)
       #  print 'iter',i,lamb, lamb_max,lamb_min,y,dy
@@ -794,9 +797,9 @@ def L_BFGS(x0, d0, fdf, qlist, glist, fdf0, big_step, tol, itmax, m, scale, k):
         if scale == 0:
             hk = 1.0
         elif scale == 1:
-            hk = np.dot(glist[0], qlist[0]) / np.dot(glist[0], glist[0])
+            hk = old_div(np.dot(glist[0], qlist[0]), np.dot(glist[0], glist[0]))
         elif scale == 2:
-            hk = np.dot(glist[bound1], qlist[bound1]) / np.dot(glist[bound1], glist[bound1])
+            hk = old_div(np.dot(glist[bound1], qlist[bound1]), np.dot(glist[bound1], glist[bound1]))
 
         d = hk * q
 
@@ -863,7 +866,7 @@ def bracket_neb(fdf, fdf0=None, x0=0.0, init_step=1.0e-3):
     while fb > fc:
         r = (bx - ax) * (fb - fc)
         q = (bx - cx) * (fb - fa)
-        u = bx - ((bx - cx) * q - (bx - ax) * r) / (2.0 * math.copysign(max(abs(q - r), tiny), (q - r)))  # Point from parabolic fit
+        u = bx - old_div(((bx - cx) * q - (bx - ax) * r), (2.0 * math.copysign(max(abs(q - r), tiny), (q - r))))  # Point from parabolic fit
         ulim = bx + glimit * (cx - bx)  # Limit for parabolic fit point; *Can test various possibilities*
 
         # Find minimums between b and c or a and u
@@ -1019,10 +1022,10 @@ def min_brent_neb(fdf, fdf0=None, x0=0.0, tol=1.0e-6, itmax=100, init_step=1.0e-
             # Take parabolic step (conditions fulfilled)
             # minimum of fitted parabola at point u
             else:
-                d = p / q
+                d = old_div(p, q)
                 u = x + d
                 if ((u - a) < tol2) or ((b - u) < tol2):
-                    d = abs(tol1) * (xm - x) / abs(xm - x)
+                    d = old_div(abs(tol1) * (xm - x), abs(xm - x))
         # if abs(e) <= tol1 (first step in any case)
         else:
                 # step into larger of the two segments
@@ -1034,7 +1037,7 @@ def min_brent_neb(fdf, fdf0=None, x0=0.0, tol=1.0e-6, itmax=100, init_step=1.0e-
         if abs(d) >= tol1:
             u = x + d
         else:
-            u = x + abs(tol1) * d / abs(d)
+            u = x + old_div(abs(tol1) * d, abs(d))
             # one function evaluation per iteration, derivative is computed, too..
             # include count...
         fu = fdf(u)[1]
@@ -1119,14 +1122,14 @@ def L_BFGS_nls(x0, d0, fdf, qlist, glist, fdf0=None, big_step=100, tol=1.0e-6, i
         while np.sqrt(np.dot(g.flatten(), g.flatten())) >= np.sqrt(np.dot(df0.flatten(), df0.flatten()))\
                 or np.isnan(np.sqrt(np.dot(g.flatten(), g.flatten()))) == True\
                 or np.isinf(np.sqrt(np.dot(g.flatten(), g.flatten()))) == True:
-            x = np.add(x0, (scale * init_step * d0 / np.sqrt(np.dot(d0.flatten(), d0.flatten()))))
+            x = np.add(x0, (old_div(scale * init_step * d0, np.sqrt(np.dot(d0.flatten(), d0.flatten())))))
             scale *= 0.1
             fx, g = fdf(x)
     else:
 
         # Scale if attempted step is too large
         if stepsize > big_step:
-            d0 = big_step * d0 / np.sqrt(np.dot(d0.flatten(), d0.flatten()))
+            d0 = old_div(big_step * d0, np.sqrt(np.dot(d0.flatten(), d0.flatten())))
             info(" @MINIMIZE: Scaled step size", verbosity.debug)
 
         x = np.add(x0, d0)
@@ -1179,7 +1182,7 @@ def L_BFGS_nls(x0, d0, fdf, qlist, glist, fdf0=None, big_step=100, tol=1.0e-6, i
 
     # Two possiblities for scaling: using first or most recent
     # members of the gradient and position lists
-    hk = np.dot(glist[bound1], qlist[bound1]) / np.dot(glist[bound1], glist[bound1])
+    hk = old_div(np.dot(glist[bound1], qlist[bound1]), np.dot(glist[bound1], glist[bound1]))
     #hk = np.dot(glist[0], qlist[0]) / np.dot(glist[0], glist[0])
     xi = hk * q
 
@@ -1220,7 +1223,7 @@ def nichols(f0, f1, d, dynmax, m3, big_step, mode=1):
     # Resize
     ndim = f0.size
     shape = f0.shape
-    f = (f0 + f1).reshape((1, ndim)) / m3.reshape((1, ndim))**0.5  # From cartesian base to mass-weighted base
+    f = old_div((f0 + f1).reshape((1, ndim)), m3.reshape((1, ndim))**0.5)  # From cartesian base to mass-weighted base
 
     # Change of basis to eigenvector space
     d = d[:, np.newaxis]  # dimension nx1
@@ -1234,29 +1237,29 @@ def nichols(f0, f1, d, dynmax, m3, big_step, mode=1):
         alpha = 1.0
         lamb = 0.0
 
-        d_x = alpha * (gE) / (lamb - d)
+        d_x = old_div(alpha * (gE), (lamb - d))
 
         if d[0] < 0 or np.dot(d_x.flatten(), d_x.flatten()) > big_step ** 2:
-            lamb = d[0] - np.absolute(gE[0] / big_step)
-            d_x = alpha * (gE) / (lamb - d)
+            lamb = d[0] - np.absolute(old_div(gE[0], big_step))
+            d_x = old_div(alpha * (gE), (lamb - d))
 
     elif mode == 1:
 
         if d[0] > 0:
-            if d[1] / 2 > d[0]:
+            if old_div(d[1], 2) > d[0]:
                 alpha = 1
-                lamb = (2 * d[0] + d[1]) / 4
+                lamb = old_div((2 * d[0] + d[1]), 4)
             else:
-                alpha = (d[1] - d[0]) / d[1]
-                lamb = (3 * d[0] + d[1]) / 4  # midpoint between b[0] and b[1]*(1-alpha/2)
+                alpha = old_div((d[1] - d[0]), d[1])
+                lamb = old_div((3 * d[0] + d[1]), 4)  # midpoint between b[0] and b[1]*(1-alpha/2)
 
         elif d[1] < 0:  # Jeremy Richardson
-            if (d[1] >= d[0] / 2):
+            if (d[1] >= old_div(d[0], 2)):
                 alpha = 1
-                lamb = (d[0] + 2 * d[1]) / 4
+                lamb = old_div((d[0] + 2 * d[1]), 4)
             else:
-                alpha = (d[0] - d[1]) / d[1]
-                lamb = (d[0] + 3 * d[1]) / 4
+                alpha = old_div((d[0] - d[1]), d[1])
+                lamb = old_div((d[0] + 3 * d[1]), 4)
 
         # elif d[1] < 0:  #Litman for Second Order Saddle point
         #    alpha = 1
@@ -1265,9 +1268,9 @@ def nichols(f0, f1, d, dynmax, m3, big_step, mode=1):
         #    print 'd_x', d_x[0],d_x[1]
         else:  # Only d[0] <0
             alpha = 1
-            lamb = (d[0] + d[1]) / 4
+            lamb = old_div((d[0] + d[1]), 4)
 
-        d_x = alpha * (gE) / (lamb - d)
+        d_x = old_div(alpha * (gE), (lamb - d))
     # Some check or any type of reject? ALBERTO
 
     DX = np.dot(dynmax, d_x)  # From ev base to mass-weighted base
@@ -1285,7 +1288,7 @@ def Powell(d, Dg, H):
 
     Output: H = Cartesian Hessian"""
 
-    ddi = 1 / np.dot(d, d)
+    ddi = old_div(1, np.dot(d, d))
     y = Dg - np.dot(H, d)
     H += ddi * (np.outer(y, d) + np.outer(d, y) - np.dot(y, d) * np.outer(d, d) * ddi)
     return H

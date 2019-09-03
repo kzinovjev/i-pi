@@ -1,5 +1,9 @@
 #!/usr/bin/env python2
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 description = """
 Computes the quantum momentum distribution of a particle given the end-to-end distances.  
 It computes both the three components of the momentum distribution and the spherically-averaged 
@@ -35,7 +39,7 @@ def r2_K(d, r, is2half):
         r2 = r**2
         d_r2K = (np.exp(-is2half * r2) * 4 * r2 + 4. / 3. * np.exp(-is2half * r2) * r2 * is2half * (-3.0 + 2.0 * r2 * is2half) * d**2)
     else:
-        d_r2K = (np.exp(-is2half * (d - r)**2) - np.exp(-is2half * (d + r)**2)) * r / (d * is2half)
+        d_r2K = old_div((np.exp(-is2half * (d - r)**2) - np.exp(-is2half * (d + r)**2)) * r, (d * is2half))
     return d_r2K
 
 
@@ -60,9 +64,9 @@ def r2_dK(d, r, is2half):
     """
 
     if (d <= 1.0e-2):
-        d_r2_dK = (8.0 * r**3 * d) * np.exp(-r**2 * is2half) / (3. * (1.0 / is2half)**2.5 * np.sqrt(np.pi))
+        d_r2_dK = old_div((8.0 * r**3 * d) * np.exp(-r**2 * is2half), (3. * (1.0 / is2half)**2.5 * np.sqrt(np.pi)))
     else:
-        d_r2_dK = (np.sqrt(1.0 / is2half) * ((1.0 + 2.0 * r * is2half * d) * np.exp(-is2half * (r + d)**2) + np.exp(-is2half * (r + d)**2 + 4 * r * is2half * d) * (-1 + 2 * r * is2half * d))) / (2. * np.sqrt(np.pi) * d**2)
+        d_r2_dK = old_div((np.sqrt(1.0 / is2half) * ((1.0 + 2.0 * r * is2half * d) * np.exp(-is2half * (r + d)**2) + np.exp(-is2half * (r + d)**2 + 4 * r * is2half * d) * (-1 + 2 * r * is2half * d))), (2. * np.sqrt(np.pi) * d**2))
     return d_r2_dK
 
 
@@ -125,9 +129,9 @@ def dhist_by_dr(qpath, fpath, r, r2_kernel, k_param):
     coeffs = k_param[1]
     beta_P = k_param[2]
     mw_P2 = k_param[3]
-    P = qpath.shape[1] / 3
+    P = old_div(qpath.shape[1], 3)
 
-    for i in xrange(len(qpath)):
+    for i in range(len(qpath)):
         # Instantaneous position of all the beads of the ring polymer
         q = qpath[i]
 
@@ -153,10 +157,10 @@ def dhist_by_dr(qpath, fpath, r, r2_kernel, k_param):
         if d < 1e-3:
             scaled_gradient_dot_x = 0.0
         else:
-            scaled_gradient_dot_x = np.dot(scaled_gradient, x) / d
+            scaled_gradient_dot_x = old_div(np.dot(scaled_gradient, x), d)
 
         # Divides the "r**2 times kernel" by r**2 and avoids the 0 / 0 case when r tends to 0.
-        d_dhist_by_dr[r > 1e-3] += (scaled_gradient_dot_x * r2_kernel(d, r, is2half))[r > 1e-3] / r[r > 1e-3]**2
+        d_dhist_by_dr[r > 1e-3] += old_div((scaled_gradient_dot_x * r2_kernel(d, r, is2half))[r > 1e-3], r[r > 1e-3]**2)
 
     return d_dhist_by_dr
 
@@ -220,7 +224,7 @@ def get_np(qpath_file, fpath_file, prefix, bsize, P, m, T, s, ns, skip, der):
     # Defines the grids.
     r = np.linspace(0, s, ns)
     dr = abs(r[1] - r[0])
-    p = np.linspace(0, np.pi / dr, ns)
+    p = np.linspace(0, old_div(np.pi, dr), ns)
     dp = np.abs(p[0] - p[1])
 
     # Defines empty python lists that store the histograms (or their derivatives) of the end-to-end distance and the momentum.
@@ -231,13 +235,13 @@ def get_np(qpath_file, fpath_file, prefix, bsize, P, m, T, s, ns, skip, der):
         dh_by_dr_list = []
 
     # Calculates the number of chunks for block averaging.
-    n_blocks = int(len(qpath) / bsize)
+    n_blocks = int(old_div(len(qpath), bsize))
 
     if n_blocks == 0:
         print("# ERROR: Not enough data to build a block")
         exit()
 
-    for x in xrange(n_blocks):
+    for x in range(n_blocks):
 
         if der == False:
             qpath_block = qpath[x * bsize: (x + 1) * bsize]
@@ -253,7 +257,7 @@ def get_np(qpath_file, fpath_file, prefix, bsize, P, m, T, s, ns, skip, der):
             fsin = np.zeros(ns)
             for i in range(ns):
                 fsin[0] = p[i]
-                fsin[1:] = np.sin(p[i] * r[1:]) / r[1:]
+                fsin[1:] = old_div(np.sin(p[i] * r[1:]), r[1:])
                 p2_4pi_np_block[i] = 4 * np.pi * sum(p[i] * r2_4pi_h_block * fsin) * dr
             p2_4pi_np_list.append(p2_4pi_np_block)
 
@@ -282,7 +286,7 @@ def get_np(qpath_file, fpath_file, prefix, bsize, P, m, T, s, ns, skip, der):
                 if p[i] < 1e-3:
                     sin_pr_by_p = r
                 else:
-                    sin_pr_by_p = np.sin(p[i] * r) / p[i]
+                    sin_pr_by_p = old_div(np.sin(p[i] * r), p[i])
                 #p2_4pi_np_block[i] = 16.0 * np.pi**2 * dr * sum(dh_by_dr_block * (r_fcos_pr - sin_pr_by_p))
                 p2_4pi_np_block[i] = dr * sum(dh_by_dr_block * (r_fcos_pr - sin_pr_by_p))
             p2_4pi_np_list.append(p2_4pi_np_block)
@@ -293,22 +297,22 @@ def get_np(qpath_file, fpath_file, prefix, bsize, P, m, T, s, ns, skip, der):
     # Block averages the radial distribution of the end-to-end distance.
     avg_r2_4pi_h = np.sum(np.asarray(r2_4pi_h_list), axis=0)
     norm_r2_4pi_h = np.sum(avg_r2_4pi_h) * dr
-    avg_r2_4pi_h = avg_r2_4pi_h / norm_r2_4pi_h
-    err_r2_4pi_h = np.std(np.asarray(r2_4pi_h_list) / (norm_r2_4pi_h / n_blocks), axis=0) / np.sqrt(n_blocks)
+    avg_r2_4pi_h = old_div(avg_r2_4pi_h, norm_r2_4pi_h)
+    err_r2_4pi_h = old_div(np.std(old_div(np.asarray(r2_4pi_h_list), (old_div(norm_r2_4pi_h, n_blocks))), axis=0), np.sqrt(n_blocks))
     np.savetxt(str(prefix + "4pi_r2_h" + ".data"), np.c_[r, avg_r2_4pi_h, err_r2_4pi_h])
     print("# Printing the radial distribution of the end-to-end distance :", str(prefix + "4pi_r2_h" + ".data"))
 
     # Block averages the radial momentum distributions and estimates errors.
     avg_p2_4pi_np = np.sum(np.asarray(p2_4pi_np_list), axis=0)
     norm_p2_4pi_np = np.sum(avg_p2_4pi_np) * dp
-    avg_p2_4pi_np = avg_p2_4pi_np / norm_p2_4pi_np
-    err_p2_4pi_np = np.std(np.asarray(p2_4pi_np_list) / (norm_p2_4pi_np / n_blocks), axis=0) / np.sqrt(n_blocks)
+    avg_p2_4pi_np = old_div(avg_p2_4pi_np, norm_p2_4pi_np)
+    err_p2_4pi_np = old_div(np.std(old_div(np.asarray(p2_4pi_np_list), (old_div(norm_p2_4pi_np, n_blocks))), axis=0), np.sqrt(n_blocks))
     np.savetxt(str(prefix + "4pi_p2_np" + ".data"), np.c_[p, avg_p2_4pi_np, err_p2_4pi_np])
     print("# Printing the radial distribution of the particle momentum :", str(prefix + "4pi_p2_np" + ".data"))
 
     # Also calulates the average value of p^2.
-    avg_avgp2 = np.sum(np.asarray(avgp2_list), axis=0) / norm_p2_4pi_np
-    err_avgp2 = np.std(np.asarray(avgp2_list) / (norm_p2_4pi_np / n_blocks), axis=0) / np.sqrt(n_blocks)
+    avg_avgp2 = old_div(np.sum(np.asarray(avgp2_list), axis=0), norm_p2_4pi_np)
+    err_avgp2 = old_div(np.std(old_div(np.asarray(avgp2_list), (old_div(norm_p2_4pi_np, n_blocks))), axis=0), np.sqrt(n_blocks))
     print("# avg <p2> :", avg_avgp2, "+/-", err_avgp2)
 
 

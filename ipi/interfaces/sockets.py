@@ -5,12 +5,16 @@ removing different driver routines and the parallelization of the force
 calculation.
 """
 from __future__ import print_function
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import str
+from past.utils import old_div
+from builtins import object
 import sys
 import os
 import socket
@@ -323,7 +327,7 @@ class Driver(DriverSocket):
                 self.sendall(Message("posdata"))
                 self.sendall(h_ih[0])
                 self.sendall(h_ih[1])
-                self.sendall(np.int32(len(pos) / 3))
+                self.sendall(np.int32(old_div(len(pos), 3)))
                 self.sendall(pos)
                 self.status = Status.Up | Status.Busy
             except:

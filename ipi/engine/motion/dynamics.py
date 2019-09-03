@@ -5,12 +5,15 @@ Holds the algorithms required for normal mode propagators, and the objects to
 do the constant temperature and pressure algorithms. Also calculates the
 appropriate conserved energy quantity for the ensemble of choice.
 """
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import range
+from past.utils import old_div
 import time
 
 import numpy as np
@@ -203,11 +206,11 @@ class DummyIntegrator(dobject):
         pass
 
     def get_qdt(self):
-        return self.dt * 0.5 / self.inmts
+        return old_div(self.dt * 0.5, self.inmts)
 
     def get_pdt(self):
         dtl = 1.0 / self.nmts
-        for i in xrange(1, len(dtl)):
+        for i in range(1, len(dtl)):
             dtl[i] *= dtl[i - 1]
         dtl *= self.dt * 0.5
         return dtl
@@ -327,14 +330,14 @@ class NVEIntegrator(DummyIntegrator):
                 pcom /= Mnb
                 self.beads.p[:, i:na3:3] -= m * pcom
 
-            self.ensemble.eens += dens * 0.5 / Mnb
+            self.ensemble.eens += old_div(dens * 0.5, Mnb)
 
         if len(self.fixatoms) > 0:
             for bp in self.beads.p:
                 m = dstrip(self.beads.m)
-                self.ensemble.eens += 0.5 * np.dot(bp[self.fixatoms * 3], bp[self.fixatoms * 3] / m[self.fixatoms])
-                self.ensemble.eens += 0.5 * np.dot(bp[self.fixatoms * 3 + 1], bp[self.fixatoms * 3 + 1] / m[self.fixatoms])
-                self.ensemble.eens += 0.5 * np.dot(bp[self.fixatoms * 3 + 2], bp[self.fixatoms * 3 + 2] / m[self.fixatoms])
+                self.ensemble.eens += 0.5 * np.dot(bp[self.fixatoms * 3], old_div(bp[self.fixatoms * 3], m[self.fixatoms]))
+                self.ensemble.eens += 0.5 * np.dot(bp[self.fixatoms * 3 + 1], old_div(bp[self.fixatoms * 3 + 1], m[self.fixatoms]))
+                self.ensemble.eens += 0.5 * np.dot(bp[self.fixatoms * 3 + 2], old_div(bp[self.fixatoms * 3 + 2], m[self.fixatoms]))
                 bp[self.fixatoms * 3] = 0.0
                 bp[self.fixatoms * 3 + 1] = 0.0
                 bp[self.fixatoms * 3 + 2] = 0.0
@@ -350,7 +353,7 @@ class NVEIntegrator(DummyIntegrator):
     def qcstep(self):
         """Velocity Verlet centroid position propagator."""
         # dt/inmts
-        self.nm.qnm[0, :] += dstrip(self.nm.pnm)[0, :] / dstrip(self.beads.m3)[0] * self.qdt
+        self.nm.qnm[0, :] += old_div(dstrip(self.nm.pnm)[0, :], dstrip(self.beads.m3)[0] * self.qdt)
 
     # now the idea is that for BAOAB the MTS should work as follows:
     # take the BAB MTS, and insert the O in the very middle. This might imply breaking a A step in two, e.g. one could have
@@ -358,7 +361,7 @@ class NVEIntegrator(DummyIntegrator):
     def mtsprop_ba(self, index):
         """ Recursive MTS step """
 
-        mk = int(self.nmts[index] / 2)
+        mk = int(old_div(self.nmts[index], 2))
 
         for i in range(mk):  # do nmts/2 full sub-steps
 
@@ -402,7 +405,7 @@ class NVEIntegrator(DummyIntegrator):
             self.pstep(index)
             self.pconstraints()
 
-        for i in range(int(self.nmts[index] / 2)):  # do nmts/2 full sub-steps
+        for i in range(int(old_div(self.nmts[index], 2))):  # do nmts/2 full sub-steps
             self.pstep(index)
             self.pconstraints()
             if index == self.nmtslevels - 1:

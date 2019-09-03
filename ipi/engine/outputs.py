@@ -4,12 +4,17 @@ Holds classes to deal with the output of different properties, trajectories
 and the restart files.
 """
 from __future__ import print_function
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import os
 import time
 
@@ -162,8 +167,8 @@ class PropertyOutput(BaseOutput):
         self.system = system
         for what in self.outlist:
             key = getkey(what)
-            if not key in system.properties.property_dict.keys():
-                print("Computable properties list: ", system.properties.property_dict.keys())
+            if not key in list(system.properties.property_dict.keys()):
+                print("Computable properties list: ", list(system.properties.property_dict.keys()))
                 raise KeyError(key + " is not a recognized property")
 
         super(PropertyOutput,self).bind(mode)
@@ -286,8 +291,8 @@ class TrajectoryOutput(BaseOutput):
         self.system = system
         # Checks as soon as possible if some asked-for trajs are missing or mispelled
         key = getkey(self.what)
-        if not key in self.system.trajs.traj_dict.keys():
-            print("Computable trajectories list: ", self.system.trajs.traj_dict.keys())
+        if not key in list(self.system.trajs.traj_dict.keys()):
+            print("Computable trajectories list: ", list(self.system.trajs.traj_dict.keys()))
             raise KeyError(key + " is not a recognized output trajectory")
 
         super(TrajectoryOutput,self).bind( mode)
@@ -301,7 +306,7 @@ class TrajectoryOutput(BaseOutput):
 
         # prepare format string for zero-padded number of beads,
         # including underscpre
-        fmt_bead = "{0:0" + str(int(1 + np.floor(np.log(self.system.beads.nbeads) / np.log(10)))) + "d}"
+        fmt_bead = "{0:0" + str(int(1 + np.floor(old_div(np.log(self.system.beads.nbeads), np.log(10))))) + "d}"
 
         if getkey(self.what) in ["positions", "velocities", "forces", "extras", "forces_sc", "momenta"]:
 

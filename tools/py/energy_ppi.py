@@ -1,6 +1,9 @@
 #!/usr/bin/env python2
 
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 __author__ = 'Igor Poltavsky'
 __version__ = '1.0'
 
@@ -106,7 +109,7 @@ def totalEnergy(prefix, temp, ss=0):
 
             for j in range(nbeads):
                 for i in range(natoms):
-                    f2 += np.dot(f[j, i * 3:i * 3 + 3], f[j, i * 3:i * 3 + 3]) / m[i]
+                    f2 += old_div(np.dot(f[j, i * 3:i * 3 + 3], f[j, i * 3:i * 3 + 3]), m[i])
             for i in range(natoms):
                 ePA -= np.dot(q[0, i * 3:i * 3 + 3] - q[nbeads - 1, i * 3:i * 3 + 3], q[0, i * 3:i * 3 + 3] - q[nbeads - 1, i * 3:i * 3 + 3]) * m[i]
             for j in range(nbeads - 1):
@@ -135,7 +138,7 @@ def totalEnergy(prefix, temp, ss=0):
 
             dE = (3.0 * Constants.kb * temperature + ePA_av / float(ifr - skipSteps)) * f2_av / float(ifr - skipSteps) - \
                 f2ePA_av / float(ifr - skipSteps)
-            dE *= Constants.hbar**2 / (24.0 * (nbeads * Constants.kb * temperature)**3)
+            dE *= old_div(Constants.hbar**2, (24.0 * (nbeads * Constants.kb * temperature)**3))
 
             dE = unit_to_user("energy", potentialEnergyUnit, dE)  # Output in the same unit as potential energy
             eVir = unit_to_user("energy", potentialEnergyUnit, eVir_av / float(ifr - skipSteps))  # Output in the same unit

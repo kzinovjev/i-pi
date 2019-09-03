@@ -6,6 +6,7 @@ from __future__ import print_function
 # See the "licenses" directory for full license information.
 
 
+from builtins import object
 import glob
 import os
 import subprocess

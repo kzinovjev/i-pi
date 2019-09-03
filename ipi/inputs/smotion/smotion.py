@@ -21,6 +21,7 @@ Classes:
       writing the checkpoints.
 """
 
+from builtins import str
 import numpy as np
 from copy import copy
 import ipi.engine.initializer

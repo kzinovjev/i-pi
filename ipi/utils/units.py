@@ -1,12 +1,15 @@
 """Contains atomic masses, fundamental constants, and unit conversions
 to/from atomic units.
 """
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from past.utils import old_div
+from builtins import object
 import re
 
 from ipi.utils.messages import verbosity, info
@@ -362,4 +365,4 @@ def unit_to_user(family, unit, number):
         The number in the user specified units
     """
 
-    return number / unit_to_internal(family, unit, 1.0)
+    return old_div(number, unit_to_internal(family, unit, 1.0))

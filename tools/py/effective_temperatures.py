@@ -1,6 +1,9 @@
 #!/usr/bin/python
 
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 __author__ = 'Igor Poltavsky'
 
 """ effective_temperatures.py
@@ -63,7 +66,7 @@ def effectiveTemperatures(prefix, temp, ss=0):
     iOut = open(fn_out, "w")
 
     # Some constants
-    const = Constants.hbar**2 / (12.0 * (nbeads * Constants.kb * temperature)**3)
+    const = old_div(Constants.hbar**2, (12.0 * (nbeads * Constants.kb * temperature)**3))
 
     iOut.write("# Atom, Cartesian components of the effective temperature, average effective temperature (in Kelvin)\n")
 
@@ -92,7 +95,7 @@ def effectiveTemperatures(prefix, temp, ss=0):
             f2 = np.zeros(3 * natoms)
             for i in range(natoms):
                 for j in range(nbeads):
-                    f2[i * 3:i * 3 + 3] += f[j, i * 3:i * 3 + 3]**2 / m[i]
+                    f2[i * 3:i * 3 + 3] += old_div(f[j, i * 3:i * 3 + 3]**2, m[i])
 
             f2_av[:] += f2[:]
             ifr += 1

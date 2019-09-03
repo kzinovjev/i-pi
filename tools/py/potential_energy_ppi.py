@@ -1,6 +1,9 @@
 #!/usr/bin/python
 
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 __author__ = 'Igor Poltavsky'
 __version__ = '1.0'
 
@@ -85,7 +88,7 @@ def potentialEnergy(prefix, temp, ss=0, unit=''):
 
     # Some constants
     beta = 1.0 / (Constants.kb * temperature)
-    const = Constants.hbar**2 * beta**2 / (24.0 * nbeads**3)
+    const = old_div(Constants.hbar**2 * beta**2, (24.0 * nbeads**3))
 
     timeUnit, potentialEnergyUnit, potentialEnergy_index, time_index = extractUnits(iU)  # extracting simulation time
     # and potential energy units
@@ -132,7 +135,7 @@ def potentialEnergy(prefix, temp, ss=0, unit=''):
 
                 for j in range(nbeads):
                     for i in range(natoms):
-                        f2 += np.dot(f[j, i * 3:i * 3 + 3], f[j, i * 3:i * 3 + 3]) / m[i]
+                        f2 += old_div(np.dot(f[j, i * 3:i * 3 + 3], f[j, i * 3:i * 3 + 3]), m[i])
 
             else:
                 f2 = fortran.f2divm(np.array(f, order='F'), np.array(m, order='F'), natoms, nbeads)
@@ -144,7 +147,7 @@ def potentialEnergy(prefix, temp, ss=0, unit=''):
 
             norm = float(ifr - skipSteps)
 
-            dU = 2.0 * f2_av / norm - beta * (f2U_av / norm - f2_av * U_av / norm**2)
+            dU = 2.0 * f2_av / norm - beta * (old_div(f2U_av, norm) - old_div(f2_av * U_av, norm**2))
             dU *= const
 
             dU = unit_to_user("energy", unit, dU)

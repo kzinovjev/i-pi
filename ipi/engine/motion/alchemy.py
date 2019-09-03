@@ -3,12 +3,15 @@
 Holds the algorithms required for alchemical exchanges. Also calculates the
 appropriate conserved energy quantity.
 """
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import range
+from past.utils import old_div
 import time
 
 import numpy as np
@@ -118,7 +121,7 @@ class AlchemyMC(Motion):
         # this would be double-counting, we already have a bail-out condition above
         # if (1.0/self.nxc < self.prng.u) : return  # tries a round of exhanges with probability 1/nmc
 
-        for x in xrange(ntries):
+        for x in range(ntries):
             i = self.prng.rng.randint(lenlist)
             j = self.prng.rng.randint(lenlist)
             while self.beads.names[axlist[i]] == self.beads.names[axlist[j]]:
@@ -139,7 +142,7 @@ class AlchemyMC(Motion):
                 self.beads.names[axlist[j]] = nameswap
 
                 # change masses
-                massratio = self.beads.m[axlist[i]] / self.beads.m[axlist[j]]
+                massratio = old_div(self.beads.m[axlist[i]], self.beads.m[axlist[j]])
                 self.beads.m[axlist[i]] /= massratio
                 self.beads.m[axlist[j]] *= massratio
 

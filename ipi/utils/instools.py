@@ -1,4 +1,8 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import numpy as np
 
 from ipi.utils.messages import verbosity, info
@@ -52,7 +56,7 @@ def sym_band(A):
     M = A.shape[1]
     newA = np.empty((u + l + 1, M))
     newA[:u + 1] = A
-    for i in xrange(1, l + 1):
+    for i in range(1, l + 1):
         newA[u + i, :M - i] = A[-1 - i, i:]
     return newA
 
@@ -136,7 +140,7 @@ def get_hessian(h, gm, x0, output_maker, d=0.0005):
         e, f1 = gm(x)
         x[:, j] = x0[:, j] - d
         e, f2 = gm(x)
-        g = (f1 - f2) / (2 * d)
+        g = old_div((f1 - f2), (2 * d))
 
         h[j, :] = g.flatten()
 
@@ -199,7 +203,7 @@ def clean_hessian(h, q, natoms, nbeads, m, m3, asr, mofi=False):
         hm = dynmat
     else:
         # Computes the centre of mass.
-        com = np.dot(np.transpose(q.reshape((ii, 3))), mm) / mm.sum()
+        com = old_div(np.dot(np.transpose(q.reshape((ii, 3))), mm), mm.sum())
         qminuscom = q.reshape((ii, 3)) - com
 
         if asr == 'poly':
@@ -214,19 +218,19 @@ def clean_hessian(h, q, natoms, nbeads, m, m3, asr, mofi=False):
 
             # Computes the vectors along translations and rotations.
             # Translations
-            D[0] = np.tile([1, 0, 0], ii) / ism
-            D[1] = np.tile([0, 1, 0], ii) / ism
-            D[2] = np.tile([0, 0, 1], ii) / ism
+            D[0] = old_div(np.tile([1, 0, 0], ii), ism)
+            D[1] = old_div(np.tile([0, 1, 0], ii), ism)
+            D[2] = old_div(np.tile([0, 0, 1], ii), ism)
             # Rotations
             for i in range(3 * ii):
-                iatom = i / 3
+                iatom = old_div(i, 3)
                 idof = np.mod(i, 3)
-                D[3, i] = (R[iatom, 1] * U[idof, 2] - R[iatom, 2] * U[idof, 1]) / ism[i]
-                D[4, i] = (R[iatom, 2] * U[idof, 0] - R[iatom, 0] * U[idof, 2]) / ism[i]
-                D[5, i] = (R[iatom, 0] * U[idof, 1] - R[iatom, 1] * U[idof, 0]) / ism[i]
+                D[3, i] = old_div((R[iatom, 1] * U[idof, 2] - R[iatom, 2] * U[idof, 1]), ism[i])
+                D[4, i] = old_div((R[iatom, 2] * U[idof, 0] - R[iatom, 0] * U[idof, 2]), ism[i])
+                D[5, i] = old_div((R[iatom, 0] * U[idof, 1] - R[iatom, 1] * U[idof, 0]), ism[i])
 
             for k in range(6):
-                D[k] = D[k] / np.linalg.norm(D[k])
+                D[k] = old_div(D[k], np.linalg.norm(D[k]))
             # Computes the transformation matrix.
             transfmatrix = np.eye(3 * ii) - np.dot(D.T, D)
             hm = np.dot(transfmatrix.T, np.dot(dynmat, transfmatrix))
@@ -235,12 +239,12 @@ def clean_hessian(h, q, natoms, nbeads, m, m3, asr, mofi=False):
             # Computes the vectors along translations.
             # Translations
             D = np.zeros((3, 3 * ii), float)
-            D[0] = np.tile([1, 0, 0], ii) / ism
-            D[1] = np.tile([0, 1, 0], ii) / ism
-            D[2] = np.tile([0, 0, 1], ii) / ism
+            D[0] = old_div(np.tile([1, 0, 0], ii), ism)
+            D[1] = old_div(np.tile([0, 1, 0], ii), ism)
+            D[2] = old_div(np.tile([0, 0, 1], ii), ism)
 
             for k in range(3):
-                D[k] = D[k] / np.linalg.norm(D[k])
+                D[k] = old_div(D[k], np.linalg.norm(D[k]))
             # Computes the transformation matrix.
             transfmatrix = np.eye(3 * ii) - np.dot(D.T, D)
             hm = np.dot(transfmatrix.T, np.dot(dynmat, transfmatrix))
@@ -252,7 +256,7 @@ def clean_hessian(h, q, natoms, nbeads, m, m3, asr, mofi=False):
     d, w = np.linalg.eigh(hm)
 
     # Count
-    dd = np.sign(d) * np.absolute(d) ** 0.5 / (2 * np.pi * 3e10 * 2.4188843e-17)  # convert to cm^-1
+    dd = old_div(np.sign(d) * np.absolute(d) ** 0.5, (2 * np.pi * 3e10 * 2.4188843e-17))  # convert to cm^-1
 
     # Zeros
     cut0 = 0.01  # Note that dd[] units are cm^1
@@ -278,8 +282,8 @@ def clean_hessian(h, q, natoms, nbeads, m, m3, asr, mofi=False):
             info(" Warning @Clean hessian: We have deleted %d 'zero' frequencies " % (nzero.size), verbosity.high)
             info(" but the norm is greater than 0.01 cm^-1.  This should not happen.", verbosity.high)
 
-        d = np.delete(d, range(nneg.size, nneg.size + nzero.size))
-        w = np.delete(w, range(nneg.size, nneg.size + nzero.size), axis=1)
+        d = np.delete(d, list(range(nneg.size, nneg.size + nzero.size)))
+        w = np.delete(w, list(range(nneg.size, nneg.size + nzero.size)), axis=1)
 
     if mofi:
         if asr == 'poly':
@@ -308,7 +312,7 @@ def get_imvector(h, m3):
     hm = (hmT + hm) / 2.0
 
     d, w = np.linalg.eigh(hm)
-    freq = np.sign(d) * np.absolute(d) ** 0.5 / (2 * np.pi * 3e10 * 2.4188843e-17)
+    freq = old_div(np.sign(d) * np.absolute(d) ** 0.5, (2 * np.pi * 3e10 * 2.4188843e-17))
 
     info(" @GEOP: 1 frequency %4.1f cm^-1" % freq[0], verbosity.low)
     info(" @GEOP: 2 frequency %4.1f cm^-1" % freq[1], verbosity.low)
@@ -321,7 +325,7 @@ def get_imvector(h, m3):
     info(" @get_imvector: We stretch along the mode with freq %f cm^1" % freq[0], verbosity.low)
 
     imv = w[:, 0] * (m3[:] ** 0.5)
-    imv = imv / np.linalg.norm(imv)
+    imv = old_div(imv, np.linalg.norm(imv))
 
     return imv
 

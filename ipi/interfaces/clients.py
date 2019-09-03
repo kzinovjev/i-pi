@@ -4,12 +4,14 @@ Here we implement classes that provide interactions obtained from specific
 programs and serve them back to i-PI.
 """
 from __future__ import print_function
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from past.utils import old_div
 import sys
 import os
 import socket
@@ -140,7 +142,7 @@ class Client(DriverSocket):
                         t_now = time.time()
                         t_step = t_now - t0_step
                         t_step_tot += t_step
-                        t_step_avg = t_step_tot / (i_step + 1)
+                        t_step_avg = old_div(t_step_tot, (i_step + 1))
                         if t_max is not None:
                             t_remain = t_max - (t_now - t0)
                         print(fmt_step.format(i_step, t_step, t_step_avg, t_remain))
@@ -215,11 +217,11 @@ class ClientASE(Client):
         atoms = self.atoms
 
         # update current coordinates and cell
-        atoms.set_positions(self._positions / self.Angstrom)
-        atoms.set_cell(self._cellh / self.Angstrom)
+        atoms.set_positions(old_div(self._positions, self.Angstrom))
+        atoms.set_cell(old_div(self._cellh, self.Angstrom))
 
         # get data out, trigger calculation in the process
-        self._force[:] = atoms.get_forces() * self.eV / self.Angstrom
+        self._force[:] = old_div(atoms.get_forces() * self.eV, self.Angstrom)
         self._potential[:] = np.array([atoms.get_potential_energy() * self.eV])
 
         # DEBUG

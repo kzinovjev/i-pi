@@ -6,12 +6,15 @@ not inherently system dependent, like the running of each time step,
 choosing which properties to initialise, and which properties to output.
 """
 from __future__ import print_function
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import range
+from past.utils import old_div
 import os
 import threading
 import time
@@ -175,7 +178,7 @@ class Simulation(dobject):
 
         # start forcefields here so we avoid having a shitload of files printed
         # out only to find the socket is busy or whatever prevented starting the threads
-        for k, f in self.fflist.iteritems():
+        for k, f in self.fflist.items():
             f.start()
 
         # Checks for repeated filenames.
@@ -270,7 +273,7 @@ class Simulation(dobject):
         #tttime = 0.0
         ttot = 0.0
         # main MD loop
-        for self.step in xrange(self.step, self.tsteps):
+        for self.step in range(self.step, self.tsteps):
             # stores the state before doing a step.
             # this is a bit time-consuming but makes sure that we can honor soft
             # exit requests without screwing the trajectory
@@ -335,7 +338,7 @@ class Simulation(dobject):
             cstep += 1
 
             if (verbosity.high or (verbosity.medium and self.step % 100 == 0) or (verbosity.low and self.step % 1000 == 0)):
-                info(" # Average timings at MD step % 7d. t/step: %10.5e" % (self.step, ttot / cstep))
+                info(" # Average timings at MD step % 7d. t/step: %10.5e" % (self.step, old_div(ttot, cstep)))
                 cstep = 0
                 ttot = 0.0
                 # info(" # MD diagnostics: V: %10.5e    Kcv: %10.5e   Ecns: %10.5e" %

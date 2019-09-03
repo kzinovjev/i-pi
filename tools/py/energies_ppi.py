@@ -1,6 +1,10 @@
 #!/usr/bin/python
 
 from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 __author__ = 'Igor Poltavsky'
 
 """ energies_ppi.py
@@ -98,9 +102,9 @@ def energies(prefix, temp, ss=0, unit=''):
     const_1 = 0.5 * nbeads / (beta * Constants.hbar)**2
     const_2 = 1.5 * nbeads / beta
     const_3 = 1.5 / beta
-    const_4 = Constants.kb**2 / Constants.hbar**2
-    const_5 = Constants.hbar**2 * beta**3 / (24.0 * nbeads**3)
-    const_6 = Constants.hbar**2 * beta**2 / (24.0 * nbeads**3)
+    const_4 = old_div(Constants.kb**2, Constants.hbar**2)
+    const_5 = old_div(Constants.hbar**2 * beta**3, (24.0 * nbeads**3))
+    const_6 = old_div(Constants.hbar**2 * beta**2, (24.0 * nbeads**3))
 
     timeUnit, potentialEnergyUnit, potentialEnergy_index, time_index = extractUnits(iU)  # extracting simulation time
     # and potential energy units
@@ -152,7 +156,7 @@ def energies(prefix, temp, ss=0, unit=''):
 
                 for j in range(nbeads):
                     for i in range(natoms):
-                        f2 += np.dot(f[j, i * 3:i * 3 + 3], f[j, i * 3:i * 3 + 3]) / m[i]
+                        f2 += old_div(np.dot(f[j, i * 3:i * 3 + 3], f[j, i * 3:i * 3 + 3]), m[i])
                 for i in range(natoms):
                     KPa -= np.dot(q[0, i * 3:i * 3 + 3] - q[nbeads - 1, i * 3:i * 3 + 3], q[0, i * 3:i * 3 + 3] - q[nbeads - 1, i * 3:i * 3 + 3]) * m[i]
                 for j in range(nbeads - 1):
@@ -192,16 +196,16 @@ def energies(prefix, temp, ss=0, unit=''):
 
             norm = float(ifr - skipSteps)
 
-            dU = 2 * f2_av / norm - beta * (f2U_av / norm - f2_av * U_av / norm**2)
+            dU = old_div(2 * f2_av, norm) - beta * (old_div(f2U_av, norm) - old_div(f2_av * U_av, norm**2))
             dU *= const_6
             dU = unit_to_user("energy", unit, dU)
 
-            dK = (Constants.kb * temperature + KPa_av / norm) * f2_av / norm - f2KPa_av / norm
+            dK = old_div((Constants.kb * temperature + old_div(KPa_av, norm)) * f2_av, norm) - old_div(f2KPa_av, norm)
             dK *= const_5
             dK = unit_to_user("energy", unit, dK)
 
-            U = unit_to_user("energy", unit, U_av / norm)
-            KVir = unit_to_user("energy", unit, KVir_av / norm)
+            U = unit_to_user("energy", unit, old_div(U_av, norm))
+            KVir = unit_to_user("energy", unit, old_div(KVir_av, norm))
 
             iE = open(fn_out_en, "a")
             iE.write("%f    %f     %f     %f     %f    %f     %f     %f     %f     %f\n"

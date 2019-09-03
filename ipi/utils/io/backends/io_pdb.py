@@ -7,6 +7,7 @@ in the PDB format.
 # See the "licenses" directory for full license information.
 
 
+from builtins import range
 import sys
 import copy
 

@@ -14,8 +14,12 @@ Syntax:
    posforce2kinetic.py prefix temperature[K]
 """
 from __future__ import print_function
+from __future__ import division
 
 
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import sys
 import glob
@@ -104,7 +108,7 @@ def main(prefix, temp):
                 kcv[i, 3] += (q[j, i * 3 + 0] - qc[i * 3 + 0]) * f[j, i * 3 + 1] + (q[j, i * 3 + 1] - qc[i * 3 + 1]) * f[j, i * 3 + 0]
                 kcv[i, 4] += (q[j, i * 3 + 0] - qc[i * 3 + 0]) * f[j, i * 3 + 2] + (q[j, i * 3 + 2] - qc[i * 3 + 2]) * f[j, i * 3 + 0]
                 kcv[i, 5] += (q[j, i * 3 + 1] - qc[i * 3 + 1]) * f[j, i * 3 + 2] + (q[j, i * 3 + 2] - qc[i * 3 + 2]) * f[j, i * 3 + 1]
-        kcv *= -0.5 / nbeads
+        kcv *= old_div(-0.5, nbeads)
         kcv[:, 0:3] += 0.5 * Constants.kb * temp
         kcv[:, 3:6] *= 0.5
 

@@ -2,12 +2,14 @@
 
 Algorithms implemented by Robert Meissner and Riccardo Petraglia, 2016
 """
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2016 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from past.utils import old_div
 import numpy as np
 import time
 
@@ -55,9 +57,9 @@ class TemperatureRamp(Motion):
             self.ensemble.temp = self.t_end
         else:
             if self.logscale:
-                self.ensemble.temp = self.t_start * (self.t_end/self.t_start)**(self.current_step*1.0/self.total_steps)
+                self.ensemble.temp = self.t_start * (old_div(self.t_end,self.t_start))**(old_div(self.current_step*1.0,self.total_steps))
             else:
-                self.ensemble.temp = self.t_start + self.current_step*(self.t_end - self.t_start)/self.total_steps
+                self.ensemble.temp = self.t_start + old_div(self.current_step*(self.t_end - self.t_start),self.total_steps)
 
 class PressureRamp(Motion):
     """Pressure ramp (quench/heat).
@@ -94,6 +96,6 @@ class PressureRamp(Motion):
             self.ensemble.pext = self.p_end
         else:
             if self.logscale:
-                self.ensemble.pext = self.p_start * (self.p_end/self.p_start)**(self.current_step*1.0/self.total_steps)
+                self.ensemble.pext = self.p_start * (old_div(self.p_end,self.p_start))**(old_div(self.current_step*1.0,self.total_steps))
             else:
-                self.ensemble.pext = self.p_start + self.current_step*(self.p_end - self.p_start)/self.total_steps
+                self.ensemble.pext = self.p_start + old_div(self.current_step*(self.p_end - self.p_start),self.total_steps)

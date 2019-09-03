@@ -19,8 +19,12 @@ data for replica 'index'.
 Syntax:
    remdsort.py inputfile.xml
 """
+from __future__ import division
 
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys
 from copy import deepcopy
 import numpy as np
@@ -96,7 +100,7 @@ def main(inputfile, prefix="SRT_"):
                     ntraj = []
                     isys = 0
                     # zero-padded bead number
-                    padb = (("%0" + str(int(1 + np.floor(np.log(nbeads) / np.log(10)))) + "d") % (b))
+                    padb = (("%0" + str(int(1 + np.floor(old_div(np.log(nbeads), np.log(10))))) + "d") % (b))
                     for s in simul.syslist:
                         if s.prefix != "":
                             filename = s.prefix + "_" + o.filename
@@ -139,7 +143,7 @@ def main(inputfile, prefix="SRT_"):
     # now reads files one frame at a time, and re-direct output to the appropriate location
 
     line = ptfile.readline().split()
-    irep = range(nsys)  # Could this be harmful?
+    irep = list(range(nsys))  # Could this be harmful?
     step = 0
     while True:
         # reads one line from index file

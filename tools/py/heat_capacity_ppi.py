@@ -1,6 +1,10 @@
 #!/usr/bin/python
 
 from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 __author__ = 'Igor Poltavsky'
 
 """ heat_capacity_ppi.py
@@ -95,8 +99,8 @@ def heatCapacity(prefix, temp, ss=0):
     beta = 1.0 / (Constants.kb * temperature)
     const_1 = 0.5 * nbeads / (beta * Constants.hbar)**2
     const_2 = 1.5 * nbeads / beta
-    const_3 = Constants.kb**2 / Constants.hbar**2
-    const_4 = Constants.hbar**2 * beta**2 / (24.0 * nbeads**3)
+    const_3 = old_div(Constants.kb**2, Constants.hbar**2)
+    const_4 = old_div(Constants.hbar**2 * beta**2, (24.0 * nbeads**3))
     const_5 = Constants.kb * beta**2
 
     timeUnit, potentialEnergyUnit, potentialEnergy_index, time_index = extractUnits(iU)  # extracting simulation time
@@ -143,7 +147,7 @@ def heatCapacity(prefix, temp, ss=0):
 
                 for j in range(nbeads):
                     for i in range(natoms):
-                        f2 += np.dot(f[j, i * 3:i * 3 + 3], f[j, i * 3:i * 3 + 3]) / m[i]
+                        f2 += old_div(np.dot(f[j, i * 3:i * 3 + 3], f[j, i * 3:i * 3 + 3]), m[i])
                 for i in range(natoms):
                     KPa -= np.dot(q[0, i * 3:i * 3 + 3] - q[nbeads - 1, i * 3:i * 3 + 3], q[0, i * 3:i * 3 + 3] - q[nbeads - 1, i * 3:i * 3 + 3]) * m[i]
                 for j in range(nbeads - 1):
@@ -172,18 +176,18 @@ def heatCapacity(prefix, temp, ss=0):
 
             norm = float(ifr - skipSteps)
 
-            dU = 2 * f2_av / norm - beta * (f2U_av / norm - f2_av * U_av / norm**2)
+            dU = old_div(2 * f2_av, norm) - beta * (old_div(f2U_av, norm) - old_div(f2_av * U_av, norm**2))
             dU *= const_4
 
-            dK = f2_av / norm - beta * (f2KPa_av / norm - f2_av * KPa_av / norm**2)
+            dK = old_div(f2_av, norm) - beta * (old_div(f2KPa_av, norm) - old_div(f2_av * KPa_av, norm**2))
             dK *= const_4
 
-            C = E2_av / norm - ((KPa_av + U_av) / norm)**2 + (2.0 / beta) * KPa_av / norm - 1.5 * nbeads * natoms / beta**2
+            C = old_div(E2_av, norm) - (old_div((KPa_av + U_av), norm))**2 + old_div((2.0 / beta) * KPa_av, norm) - 1.5 * nbeads * natoms / beta**2
             C *= const_5
 
-            dC = 2 * (5 + 3 * beta * (KPa_av + U_av) / norm) * beta * f2_av * const_4 / norm - \
-                2 * (3 + beta * (KPa_av + U_av) / norm) * beta * (dK + dU) + 2 * beta * dK - \
-                const_4 * (f2E2_av / norm - f2_av * E2_av / norm**2) * beta**3
+            dC = old_div(2 * (5 + old_div(3 * beta * (KPa_av + U_av), norm)) * beta * f2_av * const_4, norm) - \
+                2 * (3 + old_div(beta * (KPa_av + U_av), norm)) * beta * (dK + dU) + 2 * beta * dK - \
+                const_4 * (old_div(f2E2_av, norm) - old_div(f2_av * E2_av, norm**2)) * beta**3
 
             iC = open(fn_out_en, "a")
             iC.write("%f    %f     %f     %f\n" % (time, C + dC, C, dC))

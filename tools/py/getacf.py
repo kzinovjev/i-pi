@@ -3,8 +3,12 @@
 """
 Computes the autocorrelation function from i-pi outputs. Assumes the input files are in xyz format and atomic units.
 """
+from __future__ import division
 
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import argparse
 import sys
 import numpy as np
@@ -51,9 +55,9 @@ def compute_acf(input_file, output_prefix, maximum_lag, block_length, length_zer
     # stores the indices of the "chosen" atoms.
     ndof = len(rr['data'])
     if("*" in labels):
-        labelbool = np.ones(ndof / 3, bool)
+        labelbool = np.ones(old_div(ndof, 3), bool)
     else:
-        labelbool = np.zeros(ndof / 3, bool)
+        labelbool = np.zeros(old_div(ndof, 3), bool)
         for l in labels:
             labelbool = np.logical_or(labelbool, rr['names'] == l)
     nspecies = labelbool.sum()
@@ -62,8 +66,8 @@ def compute_acf(input_file, output_prefix, maximum_lag, block_length, length_zer
     nblocks = 0
     dt = unit_to_internal("time", timestep[1], float(timestep[0]))
     data = np.zeros((bsize, nspecies, 3), float)
-    time = np.asarray(range(mlag + 1)) * dt
-    omega = np.asarray(range(2 * (mlag + npad))) / float(2 * (mlag + npad)) * (2 * np.pi / dt)
+    time = np.asarray(list(range(mlag + 1))) * dt
+    omega = np.asarray(list(range(2 * (mlag + npad)))) / float(2 * (mlag + npad)) * (old_div(2 * np.pi, dt))
     fvvacf = omega.copy() * 0.0
     fvvacf2 = fvvacf.copy() * 0.0 
     vvacf = time.copy() * 0.0
@@ -83,7 +87,7 @@ def compute_acf(input_file, output_prefix, maximum_lag, block_length, length_zer
 
     ff = open(ifile)
     # Skips the first fskip frames
-    for x in xrange(fskip):
+    for x in range(fskip):
         rr = read_file_raw("xyz", ff)
 
     while True:
@@ -92,10 +96,10 @@ def compute_acf(input_file, output_prefix, maximum_lag, block_length, length_zer
             # Reads the data in blocks.
             for i in range(bsize):
                 rr = read_file_raw("xyz", ff)
-                data[i] = rr['data'].reshape((ndof / 3, 3))[labelbool]
+                data[i] = rr['data'].reshape((old_div(ndof, 3), 3))[labelbool]
 
             if(der == True):
-                data = np.gradient(data, axis=0) / dt
+                data = old_div(np.gradient(data, axis=0), dt)
 
             # Computes the Fourier transform of the data.
             fdata = np.fft.rfft(data, axis=0)
@@ -129,14 +133,14 @@ def compute_acf(input_file, output_prefix, maximum_lag, block_length, length_zer
     ff.close()
 
     # Performs the block average of the Fourier transform.
-    fvvacf = fvvacf / nblocks
-    fvvacf_err = np.sqrt(fvvacf2  / nblocks - fvvacf**2)
+    fvvacf = old_div(fvvacf, nblocks)
+    fvvacf_err = np.sqrt(old_div(fvvacf2, nblocks) - fvvacf**2)
 
     np.savetxt(ofile + "_facf.data", np.c_[omega, fvvacf, fvvacf_err][:mlag + npad])
 
     # Computes the inverse Fourier transform to get the vvac.
-    vvacf = vvacf / nblocks
-    vvacf_err = np.sqrt(vvacf2  / nblocks - vvacf**2)
+    vvacf = old_div(vvacf, nblocks)
+    vvacf_err = np.sqrt(old_div(vvacf2, nblocks) - vvacf**2)
     np.savetxt(ofile + "_acf.data", np.c_[time, vvacf, vvacf_err][:mlag + npad])
 
 

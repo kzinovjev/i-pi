@@ -3,12 +3,16 @@
 Algorithms implemented by Michele Ceriotti and Bejamin Helfrecht, 2015
 """
 from __future__ import print_function
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import numpy as np
 import time
 
@@ -59,7 +63,7 @@ class NEBLineMover(object):
 
     def set_dir(self, x0, mdir):
         self.x0 = x0.copy()
-        self.d = mdir.copy() / np.sqrt(np.dot(mdir.flatten(), mdir.flatten()))
+        self.d = old_div(mdir.copy(), np.sqrt(np.dot(mdir.flatten(), mdir.flatten())))
         if self.x0.shape != self.d.shape:
             raise ValueError("Incompatible shape of initial value and displacement direction")
 
@@ -93,7 +97,7 @@ class NEBLineMover(object):
             d2 = bq[ii + 1] - bq[ii]   # tau plus
 
             # "Old" implementation of NEB
-            btau[ii] = d1 / np.linalg.norm(d1) + d2 / np.linalg.norm(d2)
+            btau[ii] = old_div(d1, np.linalg.norm(d1)) + old_div(d2, np.linalg.norm(d2))
             btau[ii] *= 1.0 / np.linalg.norm(btau)
 
 # Energy of images: (ii+1) < (ii) < (ii-1)
@@ -472,7 +476,7 @@ class NEBMover(Motion):
                 gradf1 = dq1 = -nebgrad
 
                 # Move direction for steepest descent and 1st conjugate gradient step
-                dq1_unit = dq1 / np.sqrt(np.dot(gradf1.flatten(), gradf1.flatten()))
+                dq1_unit = old_div(dq1, np.sqrt(np.dot(gradf1.flatten(), gradf1.flatten())))
                 info(" @GEOP: Determined SD direction", verbosity.debug)
 
             else:
@@ -487,9 +491,9 @@ class NEBMover(Motion):
                 dq0 = self.old_d
                 nebgrad = self.neblm(self.beads.q)[0]
                 gradf1 = -nebgrad
-                beta = np.dot((gradf1.flatten() - gradf0.flatten()), gradf1.flatten()) / (np.dot(gradf0.flatten(), gradf0.flatten()))
+                beta = old_div(np.dot((gradf1.flatten() - gradf0.flatten()), gradf1.flatten()), (np.dot(gradf0.flatten(), gradf0.flatten())))
                 dq1 = gradf1 + max(0.0, beta) * dq0
-                dq1_unit = dq1 / np.sqrt(np.dot(dq1.flatten(), dq1.flatten()))
+                dq1_unit = old_div(dq1, np.sqrt(np.dot(dq1.flatten(), dq1.flatten())))
                 info(" @GEOP: Determined CG direction", verbosity.debug)
 
             # Store force and direction for next CG step
@@ -522,14 +526,14 @@ class NEBMover(Motion):
         self.qtime += time.time()
 
         # Determine conditions for converged relaxation
-        if ((fx - u0) / self.beads.natoms <= self.tolerances["energy"])\
+        if (old_div((fx - u0), self.beads.natoms) <= self.tolerances["energy"])\
                 and ((np.amax(np.absolute(self.forces.f)) <= self.tolerances["force"])
                      or (np.sqrt(np.dot(self.forces.f.flatten() - self.old_f.flatten(),
                                         self.forces.f.flatten() - self.old_f.flatten())) == 0.0))\
                 and (x <= self.tolerances["position"]):
             softexit.trigger("Geometry optimization converged. Exiting simulation")
         else:
-            info(" @GEOP: Not converged, deltaEnergy = %.8f, tol = %.8f" % ((fx - u0 / self.beads.natoms), self.tolerances["energy"]), verbosity.debug)
+            info(" @GEOP: Not converged, deltaEnergy = %.8f, tol = %.8f" % ((fx - old_div(u0, self.beads.natoms)), self.tolerances["energy"]), verbosity.debug)
             info(" @GEOP: Not converged, force = %.8f, tol = %f" % (np.amax(np.absolute(self.forces.f)), self.tolerances["force"]), verbosity.debug)
             info(" @GEOP: Not converged, deltaForce = %.8f, tol = 0.00000000" % (np.sqrt(np.dot(self.forces.f.flatten() - self.old_f.flatten(), self.forces.f.flatten() - self.old_f.flatten()))), verbosity.debug)
             info(" @GEOP: Not converged, deltaX = %.8f, tol = %.8f" % (x, self.tolerances["position"]), verbosity.debug)

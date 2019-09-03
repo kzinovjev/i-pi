@@ -1,3 +1,4 @@
+from builtins import range
 import numpy as np
 
 table1 = np.loadtxt('accumulated.out.w')

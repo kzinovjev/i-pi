@@ -2,12 +2,15 @@
 
 Algorithms implemented by Robert Meissner and Riccardo Petraglia, 2016
 """
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2016 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import time
 
@@ -83,7 +86,7 @@ class ReplicaExchange(Smotion):
         super(ReplicaExchange, self).bind(syslist, prng, omaker)
 
         if self.repindex is None or len(self.repindex) == 0:
-            self.repindex = np.asarray(range(len(self.syslist)))
+            self.repindex = np.asarray(list(range(len(self.syslist))))
         else:
             if len(self.syslist) != len(self.repindex):
                 raise ValueError("Size of replica index does not match number of systems replicas")
@@ -124,13 +127,13 @@ class ReplicaExchange(Smotion):
                 # which means that the exchange is done only relative to the potential energy part.
                 if self.rescalekin:
                     # also rescales the velocities -- should do the same with cell velocities
-                    sl[i].beads.p *= np.sqrt(tj / ti)
-                    sl[j].beads.p *= np.sqrt(ti / tj)
+                    sl[i].beads.p *= np.sqrt(old_div(tj, ti))
+                    sl[j].beads.p *= np.sqrt(old_div(ti, tj))
                     try:  # if motion has a barostat, and barostat has a momentum, does the swap
                         # also note that the barostat has a hidden T dependence inside the mass, so
                         # as a matter of fact <p^2> \propto T^2
-                        sl[i].motion.barostat.p *= (tj / ti)
-                        sl[j].motion.barostat.p *= (ti / tj)
+                        sl[i].motion.barostat.p *= (old_div(tj, ti))
+                        sl[j].motion.barostat.p *= (old_div(ti, tj))
                     except AttributeError:
                         pass
                 t_swap += time.time()
@@ -146,8 +149,8 @@ class ReplicaExchange(Smotion):
                     info(" @ PT:  SWAPPING replicas % 5d and % 5d." % (i, j), verbosity.low)
 
                     # if we have GLE thermostats, we also have to exchange rescale the s!!!
-                    gle_scale(sl[i], (tj / ti))
-                    gle_scale(sl[j], (ti / tj))
+                    gle_scale(sl[i], (old_div(tj, ti)))
+                    gle_scale(sl[j], (old_div(ti, tj)))
 
                     t_eval -= time.time()
                     # we just have to carry on with the swapped ensembles, but we also keep track of the changes in econs
@@ -164,11 +167,11 @@ class ReplicaExchange(Smotion):
 
                     # undoes the kinetic scaling
                     if self.rescalekin:
-                        sl[i].beads.p *= np.sqrt(ti / tj)
-                        sl[j].beads.p *= np.sqrt(tj / ti)
+                        sl[i].beads.p *= np.sqrt(old_div(ti, tj))
+                        sl[j].beads.p *= np.sqrt(old_div(tj, ti))
                         try:
-                            sl[i].motion.barostat.p *= (ti / tj)
-                            sl[j].motion.barostat.p *= (tj / ti)
+                            sl[i].motion.barostat.p *= (old_div(ti, tj))
+                            sl[j].motion.barostat.p *= (old_div(tj, ti))
                         except AttributeError:
                             pass
                     t_swap += time.time()

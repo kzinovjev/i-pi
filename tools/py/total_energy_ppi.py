@@ -1,6 +1,10 @@
 #!/usr/bin/python
 
 from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 __author__ = 'Igor Poltavsky'
 __version__ = '1.0'
 
@@ -97,8 +101,8 @@ def totalEnergy(prefix, temp, ss=0, unit=''):
     const_1 = 0.5 * nbeads / (beta * Constants.hbar)**2
     const_2 = 1.5 * nbeads / beta
     const_3 = 1.5 / beta
-    const_4 = Constants.kb**2 / Constants.hbar**2
-    const_5 = Constants.hbar**2 * beta**3 / (24.0 * nbeads**3)
+    const_4 = old_div(Constants.kb**2, Constants.hbar**2)
+    const_5 = old_div(Constants.hbar**2 * beta**3, (24.0 * nbeads**3))
 
     timeUnit, potentialEnergyUnit, potentialEnergy_index, time_index = extractUnits(iU)  # extracting simulation time
     # and potential energy units
@@ -147,7 +151,7 @@ def totalEnergy(prefix, temp, ss=0, unit=''):
 
                 for j in range(nbeads):
                     for i in range(natoms):
-                        f2 += np.dot(f[j, i * 3:i * 3 + 3], f[j, i * 3:i * 3 + 3]) / m[i]
+                        f2 += old_div(np.dot(f[j, i * 3:i * 3 + 3], f[j, i * 3:i * 3 + 3]), m[i])
                 for i in range(natoms):
                     ePA -= np.dot(q[0, i * 3:i * 3 + 3] - q[nbeads - 1, i * 3:i * 3 + 3], q[0, i * 3:i * 3 + 3] - q[nbeads - 1, i * 3:i * 3 + 3]) * m[i]
                 for j in range(nbeads - 1):
@@ -186,11 +190,11 @@ def totalEnergy(prefix, temp, ss=0, unit=''):
 
             norm = float(ifr - skipSteps)
 
-            dE = (3.0 * Constants.kb * temperature + ePA_av / norm) * f2_av / norm - f2ePA_av / norm
+            dE = old_div((3.0 * Constants.kb * temperature + old_div(ePA_av, norm)) * f2_av, norm) - old_div(f2ePA_av, norm)
             dE *= const_5
 
             dE = unit_to_user("energy", unit, dE)
-            eVir = unit_to_user("energy", unit, eVir_av / norm)
+            eVir = unit_to_user("energy", unit, old_div(eVir_av, norm))
 
             iE.write("%f    %f     %f\n" % (time, eVir, dE))
 

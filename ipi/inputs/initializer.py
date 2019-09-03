@@ -1,10 +1,13 @@
 """Creates objects that initialize the simulation."""
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import str
+from past.utils import old_div
 from copy import copy, deepcopy
 
 import numpy as np
@@ -253,7 +256,7 @@ class InputInitCell(InputInitBase):
                 if h.size != 3:
                     raise ValueError("If you are initializing cell from cell side lengths you must pass the 'cell' tag an array of 3 floats.")
                 else:
-                    h = mt.abc2h(h[0], h[1], h[2], np.pi / 2, np.pi / 2, np.pi / 2)
+                    h = mt.abc2h(h[0], h[1], h[2], old_div(np.pi, 2), old_div(np.pi, 2), old_div(np.pi, 2))
             elif mode == "abcABC":
                 if h.size != 6:
                     raise ValueError("If you are initializing cell from cell side lengths and angles you must pass the 'cell' tag an array of 6 floats.")

@@ -5,12 +5,16 @@ These classes can either be used to restart a simulation with some different
 data or used to start a calculation. Any data given in these classes will
 overwrite data given elsewhere.
 """
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import numpy as np
 
 from ipi.engine.beads import Beads
@@ -56,7 +60,7 @@ class InitBase(dobject):
         self.mode = mode
         self.units = units
 
-        for (o, v) in others.items():
+        for (o, v) in list(others.items()):
             self.__dict__[o] = v
 
 
@@ -212,7 +216,7 @@ def init_vector(iif, nbeads, momenta=False, dimension="length", units="automatic
     if mode == "manual":
         if iif.bead >= 0:  # if there is a bead specifier then we return a single bead slice
             nbeads = 1
-        natoms = len(rq) / nbeads / 3
+        natoms = old_div(len(rq), nbeads // 3)
         rq.shape = (nbeads, 3 * natoms)
 
     return rq
@@ -234,9 +238,9 @@ def set_vector(iif, dq, rq):
     """
 
     (nbeads, natoms) = rq.shape
-    natoms /= 3
+    natoms //= 3
     (dbeads, datoms) = dq.shape
-    datoms /= 3
+    datoms //= 3
 
     # Check that indices make sense
     if iif.index < 0 and natoms != datoms:
@@ -471,7 +475,7 @@ class Initializer(dobject):
                         raise ValueError("Cannot initialize single atoms before the size of the system is known")
                     simul.beads.resize(natoms, self.nbeads)
 
-                rp *= np.sqrt(self.nbeads / nbeads)
+                rp *= np.sqrt(old_div(self.nbeads, nbeads))
                 set_vector(v, simul.beads.p, rp)
                 fmom = True
             elif k == "velocities":
@@ -493,7 +497,7 @@ class Initializer(dobject):
                 else:
                     for ev in rv:
                         ev *= simul.beads.m3[0]
-                rv *= np.sqrt(self.nbeads / nbeads)
+                rv *= np.sqrt(old_div(self.nbeads, nbeads))
                 set_vector(v, simul.beads.p, rv)
                 fmom = True
             elif k == "gle": pass   # thermostats must be initialised in a second stage

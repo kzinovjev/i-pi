@@ -1,12 +1,16 @@
 """Holds the class which computes important properties of the system, and
 prepares them for output.
 """
+from __future__ import division
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import os
 import time
 
@@ -221,7 +225,7 @@ class Properties(dobject):
 
             "density": {"dimension": "density",
                         "help": "The mass density of the physical system.",
-                        'func': (lambda: self.beads.m.sum() / self.cell.V)},
+                        'func': (lambda: old_div(self.beads.m.sum(), self.cell.V))},
 
             "volume": {"dimension": "volume",
                        "help": "The volume of the cell box.",
@@ -257,7 +261,7 @@ class Properties(dobject):
                                    'func': (lambda index: self.ensemble.hweights[int(index)])},
             "ensemble_bias": {"dimension": "energy",
                               "help": "The bias applied to the current ensemble",
-                              "func": (lambda: self.ensemble.bias.pot / self.beads.nbeads)},
+                              "func": (lambda: old_div(self.ensemble.bias.pot, self.beads.nbeads))},
             "bweights_component": {"dimension": "",
                                    "help": "The weight associated to the one part of the hamiltonian. ",
                                    "longhelp": """The weight associated one part of the hamiltonian. Takes one mandatory
@@ -272,7 +276,7 @@ class Properties(dobject):
                           "help": "The physical system potential energy.",
                           "longhelp": """The physical system potential energy. With the optional argument 'bead'
                          will print the potential associated with the specified bead.""",
-                          'func': (lambda bead="-1": self.forces.pot / self.beads.nbeads if int(bead) < 0 else self.forces.pots[int(bead)])},
+                          'func': (lambda bead="-1": old_div(self.forces.pot, self.beads.nbeads) if int(bead) < 0 else self.forces.pots[int(bead)])},
 
             "potential_opsc": {"dimension": "energy",
                                "help": "The Suzuki-Chin operator estimator for the potential energy of the physical system.",
@@ -289,7 +293,7 @@ class Properties(dobject):
                        Takes one mandatory argument index (zero-based) that indicates which component of the
                        potential must be returned. The optional argument 'bead' will print the potential associated
                        with the specified bead. If the potential is weighed, the weight will be applied. """,
-                              'func': (lambda index, bead="-1": self.forces.pots_component(int(index)).sum() / self.beads.nbeads if int(bead) < 0 else self.forces.pots_component(int(index))[int(bead)])},
+                              'func': (lambda index, bead="-1": old_div(self.forces.pots_component(int(index)).sum(), self.beads.nbeads) if int(bead) < 0 else self.forces.pots_component(int(index))[int(bead)])},
 
             "pot_component_raw": {"dimension": "energy",
                                   "help": "The contribution to the system potential from one of the force components. ",
@@ -298,17 +302,17 @@ class Properties(dobject):
                        which component of the potential must be returned. The optional argument 'bead'
                        will print the potential associated with the specified bead. Potential weights
                        will not be applied. """,
-                                  'func': (lambda index, bead="-1": self.forces.pots_component(int(index), False).sum() / self.beads.nbeads if int(bead) < 0 else self.forces.pots_component(int(index), False)[int(bead)])},
+                                  'func': (lambda index, bead="-1": old_div(self.forces.pots_component(int(index), False).sum(), self.beads.nbeads) if int(bead) < 0 else self.forces.pots_component(int(index), False)[int(bead)])},
 
             "forcemod": {"dimension": "force",
                          "help": "The modulus of the force.",
                          "longhelp": """The modulus of the force. With the optional argument 'bead'
                        will print the force associated with the specified bead.""",
-                         'func': (lambda bead="-1": np.linalg.norm(self.forces.f) / self.beads.nbeads if int(bead) < 0 else np.linalg.norm(self.forces.f[int(bead)]))},
+                         'func': (lambda bead="-1": old_div(np.linalg.norm(self.forces.f), self.beads.nbeads) if int(bead) < 0 else np.linalg.norm(self.forces.f[int(bead)]))},
 
             "spring": {"dimension": "energy",
                        "help": "The total spring potential energy between the beads of all the ring polymers in the system.",
-                       'func': (lambda: self.nm.vspring / self.beads.nbeads)},
+                       'func': (lambda: old_div(self.nm.vspring, self.beads.nbeads))},
 
             "kinetic_md": {"dimension": "energy",
                            "help": "The kinetic energy of the (extended) classical system.",
@@ -403,7 +407,7 @@ class Properties(dobject):
                        "longhelp": """The velocity (x,y,z) of a particle given its index. Takes arguments index
                        and bead (both zero based). If bead is not specified, refers to the centroid.""",
                        "size": 3,
-                       "func": (lambda atom="", bead="-1": self.get_atom_vec(self.beads.p / self.beads.m3, atom=atom, bead=bead))},
+                       "func": (lambda atom="", bead="-1": self.get_atom_vec(old_div(self.beads.p, self.beads.m3), atom=atom, bead=bead))},
 
             "vcom": {"dimension": "velocity",
                      "help": "The COM velocity (x,y,z) of the system or a chosen species.",
@@ -431,18 +435,18 @@ class Properties(dobject):
                           "help": "The total stress tensor of the (extended) classical system.",
                           "longhelp": """The total stress tensor of the (extended) classical system. Returns the 6
                       independent components in the form [xx, yy, zz, xy, xz, yz].""",
-                          "func": (lambda: self.tensor2vec((self.forces.vir + self.nm.kstress) / self.cell.V))},
+                          "func": (lambda: self.tensor2vec(old_div((self.forces.vir + self.nm.kstress), self.cell.V)))},
 
             "pressure_md": {"dimension": "pressure",
                             "help": "The pressure of the (extended) classical system.",
-                            "func": (lambda: np.trace((self.forces.vir + self.nm.kstress) / (3.0 * self.cell.V)))},
+                            "func": (lambda: np.trace(old_div((self.forces.vir + self.nm.kstress), (3.0 * self.cell.V))))},
 
             "kstress_md": {"dimension": "pressure",
                            "size": 6,
                            "help": "The kinetic stress tensor of the (extended) classical system.",
                            "longhelp": """The kinetic stress tensor of the (extended) classical system. Returns the 6
                       independent components in the form [xx, yy, zz, xy, xz, yz].""",
-                           "func": (lambda: self.tensor2vec(self.nm.kstress / self.cell.V))},
+                           "func": (lambda: self.tensor2vec(old_div(self.nm.kstress, self.cell.V)))},
             "virial_fq": {"dimension": "energy",
                           "size": 1,
                           "help": "The scalar product of force and position.",
@@ -455,44 +459,44 @@ class Properties(dobject):
                           "help": "The virial tensor of the (extended) classical system.",
                           "longhelp": """The virial tensor of the (extended) classical system. Returns the 6
                       independent components in the form [xx, yy, zz, xy, xz, yz].""",
-                          "func": (lambda: self.tensor2vec(self.forces.vir / self.cell.V))},
+                          "func": (lambda: self.tensor2vec(old_div(self.forces.vir, self.cell.V)))},
 
             "stress_cv": {"dimension": "pressure",
                           "size": 6,
                           "help": "The total quantum estimator for the stress tensor of the physical system.",
                           "longhelp": """The total quantum estimator for the stress tensor of the physical system. Returns the
                       6 independent components in the form [xx, yy, zz, xy, xz, yz].""",
-                          "func": (lambda: self.tensor2vec(self.forces.vir + self.kstress_cv()) / (self.cell.V * self.beads.nbeads))},
+                          "func": (lambda: old_div(self.tensor2vec(self.forces.vir + self.kstress_cv()), (self.cell.V * self.beads.nbeads)))},
 
             "pressure_tdsc": {"dimension": "pressure",
                               "help": "The Suzuki-Chin thermodynamic estimator for pressure of the physical system.",
-                              "func": (lambda: np.trace(self.forces.vir + self.forces.virsc + self.kstress_sctd()) / (3.0 * self.cell.V * self.beads.nbeads))},
+                              "func": (lambda: old_div(np.trace(self.forces.vir + self.forces.virsc + self.kstress_sctd()), (3.0 * self.cell.V * self.beads.nbeads)))},
 
             "vir_tdsc": {"dimension": "pressure",
                          "help": "The Suzuki-Chin thermodynamic estimator for pressure of the physical system.",
-                         "func": (lambda: np.trace(self.forces.vir + self.forces.virsc) / (3.0 * self.cell.V * self.beads.nbeads))},
+                         "func": (lambda: old_div(np.trace(self.forces.vir + self.forces.virsc), (3.0 * self.cell.V * self.beads.nbeads)))},
 
             "kstress_tdsc": {"dimension": "pressure",
                              "help": "The Suzuki-Chin thermodynamic estimator for pressure of the physical system.",
-                             "func": (lambda: np.trace(self.kstress_sctd()) / (3.0 * self.cell.V * self.beads.nbeads))},
+                             "func": (lambda: old_div(np.trace(self.kstress_sctd()), (3.0 * self.cell.V * self.beads.nbeads)))},
 
             "pressure_cv": {"dimension": "pressure",
                             "help": "The quantum estimator for pressure of the physical system.",
-                            "func": (lambda: np.trace(self.forces.vir + self.kstress_cv()) / (3.0 * self.cell.V * self.beads.nbeads))},
+                            "func": (lambda: old_div(np.trace(self.forces.vir + self.kstress_cv()), (3.0 * self.cell.V * self.beads.nbeads)))},
 
             "kstress_cv": {"dimension": "pressure",
                            "size": 6,
                            "help": "The quantum estimator for the kinetic stress tensor of the physical system.",
                            "longhelp": """The quantum estimator for the kinetic stress tensor of the physical system.
                       Returns the 6 independent components in the form [xx, yy, zz, xy, xz, yz].""",
-                           "func": (lambda: self.tensor2vec(self.kstress_cv() / (self.cell.V * self.beads.nbeads)))},
+                           "func": (lambda: self.tensor2vec(old_div(self.kstress_cv(), (self.cell.V * self.beads.nbeads))))},
 
             "virial_cv": {"dimension": "pressure",
                           "size": 6,
                           "help": "The quantum estimator for the virial stress tensor of the physical system.",
                           "longhelp": """The quantum estimator for the virial stress tensor of the physical system.
                       Returns the 6 independent components in the form [xx, yy, zz, xy, xz, yz].""",
-                          "func": (lambda: self.tensor2vec(self.forces.vir / (self.cell.V * self.beads.nbeads)))},
+                          "func": (lambda: self.tensor2vec(old_div(self.forces.vir, (self.cell.V * self.beads.nbeads))))},
 
             "displacedpath": {"dimension": "undefined",
                               "help": "The displaced path end-to-end distribution estimator",
@@ -787,14 +791,14 @@ class Properties(dobject):
             # are fixed components
             M = np.sum(self.beads.m) 
             pcm = np.tile(np.sqrt(M * Constants.kb * self.ensemble.temp * self.beads.nbeads), 3)
-            vcm = np.tile(pcm / M, self.beads.natoms)
+            vcm = np.tile(old_div(pcm, M), self.beads.natoms)
 
             self.beads.p += self.beads.m3 * vcm
 
             #Avoid double counting
             if len(self.motion.fixatoms) > 0:
                 for i in self.motion.fixatoms:
-                    self.beads.p[:, 3 * i:3 * i + 3] -= np.multiply(self.beads.m[i] , pcm/M )
+                    self.beads.p[:, 3 * i:3 * i + 3] -= np.multiply(self.beads.m[i] , old_div(pcm,M) )
 
 
         kemd, ncount = self.get_kinmd(atom, bead, nm, return_count=True)
@@ -833,7 +837,7 @@ class Properties(dobject):
         # subtracts centroid
         q = dstrip(self.beads.q).copy()
         qc = dstrip(self.beads.qc)
-        for b in xrange(self.beads.nbeads):
+        for b in range(self.beads.nbeads):
             q[b] -= qc
 
         # zeroes components that are not requested
@@ -844,7 +848,7 @@ class Properties(dobject):
             else: ncount += 1
 
         acv = np.dot(q.flatten(), f.flatten())
-        acv *= -0.5 / self.beads.nbeads
+        acv *= old_div(-0.5, self.beads.nbeads)
         acv += ncount * 1.5 * Constants.kb * self.ensemble.temp
         # ~ acv = 0.0
         # ~ ncount = 0
@@ -877,7 +881,7 @@ class Properties(dobject):
                 v += 2.0 * pots[k] / 3.0 + 2.0 * (potssc[k] + pots[k] / 3.0)
             else:
                 v += 4.0 * pots[k] / 3.0 + 2.0 * (potssc[k] - pots[k] / 3.0)
-        return v / (k + 1)
+        return old_div(v, (k + 1))
 
     def get_sckinop(self, atom=""):
         """Calculates the Suzuki-Chin quantum centroid virial kinetic energy estimator.
@@ -912,7 +916,7 @@ class Properties(dobject):
             k = 3 * i
             for b in range(0, self.beads.nbeads, 2):
                 kcv += (q[b, k] - qc[k]) * f[b, k] + (q[b, k + 1] - qc[k + 1]) * f[b, k + 1] + (q[b, k + 2] - qc[k + 2]) * f[b, k + 2]
-            kcv *= -0.5 / self.beads.nbeads * 2.0
+            kcv *= old_div(-0.5, self.beads.nbeads * 2.0)
             kcv += 1.5 * Constants.kb * self.ensemble.temp
             acv += kcv
             ncount += 1
@@ -931,10 +935,10 @@ class Properties(dobject):
                 if len(self.fqref) != 3 * self.beads.natoms:
                     raise ValueError("Atom number mismatch in reference file for virial_fq")
         fq = 0.0
-        for b in xrange(self.beads.nbeads):
+        for b in range(self.beads.nbeads):
             fq += np.dot(self.forces.f[b], self.beads.q[b] - self.fqref)
 
-        return fq * 0.5 / self.beads.nbeads
+        return old_div(fq * 0.5, self.beads.nbeads)
 
     def get_sckintd(self, atom=""):
         """Calculates the Suzuki-Chin thermodynamic quantum centroid virial kinetic energy estimator.
@@ -971,10 +975,10 @@ class Properties(dobject):
             for b in range(self.beads.nbeads):
                 kcv += (q[b, k] - qc[k]) * (f + fsc)[b, k] + (q[b, k + 1] - qc[k + 1]) * (f + fsc)[b, k + 1] + (q[b, k + 2] - qc[k + 2]) * (f + fsc)[b, k + 2]
                 if b % 2 == 0:
-                    kcv -= 2 * (self.forces.alpha / self.forces.omegan2 / 9.0) * (f[b, k] * f[b, k] / self.forces.beads.m3[b, k] + f[b, k + 1] * f[b, k + 1] / self.forces.beads.m3[b, k + 1] + f[b, k + 2] * f[b, k + 2] / self.forces.beads.m3[b, k + 2])
+                    kcv -= 2 * (old_div(self.forces.alpha, self.forces.omegan2 / 9.0)) * (old_div(f[b, k] * f[b, k], self.forces.beads.m3[b, k]) + old_div(f[b, k + 1] * f[b, k + 1], self.forces.beads.m3[b, k + 1]) + old_div(f[b, k + 2] * f[b, k + 2], self.forces.beads.m3[b, k + 2]))
                 else:
-                    kcv -= 2 * ((1.0 - self.forces.alpha) / self.forces.omegan2 / 9.0) * (f[b, k] * f[b, k] / self.forces.beads.m3[b, k] + f[b, k + 1] * f[b, k + 1] / self.forces.beads.m3[b, k + 1] + f[b, k + 2] * f[b, k + 2] / self.forces.beads.m3[b, k + 2])
-            kcv *= -0.5 / self.beads.nbeads
+                    kcv -= 2 * (old_div((1.0 - self.forces.alpha), self.forces.omegan2 / 9.0)) * (old_div(f[b, k] * f[b, k], self.forces.beads.m3[b, k]) + old_div(f[b, k + 1] * f[b, k + 1], self.forces.beads.m3[b, k + 1]) + old_div(f[b, k + 2] * f[b, k + 2], self.forces.beads.m3[b, k + 2]))
+            kcv *= old_div(-0.5, self.beads.nbeads)
             kcv += 1.5 * Constants.kb * self.ensemble.temp
             acv += kcv
             ncount += 1
@@ -1020,7 +1024,7 @@ class Properties(dobject):
             for j in range(3 * i, 3 * (i + 1)):
                 ktd += (q[self.beads.nbeads - 1, j] - q[0, j])**2
 
-            ktd *= -0.5 * m[i] * self.nm.omegan2 / self.beads.nbeads
+            ktd *= old_div(-0.5 * m[i] * self.nm.omegan2, self.beads.nbeads)
             ktd += PkT32
             atd += ktd
             ncount += 1
@@ -1034,7 +1038,7 @@ class Properties(dobject):
         """Calculates the quantum centroid virial kinetic energy estimator.
         """
 
-        spring = self.beads.vpath * self.nm.omegan2 / self.beads.nbeads
+        spring = old_div(self.beads.vpath * self.nm.omegan2, self.beads.nbeads)
         PkT32 = 1.5 * Constants.kb * self.ensemble.temp * self.beads.nbeads * self.beads.natoms
         pots = dstrip(self.forces.pots)
         potssc = dstrip(self.forces.potssc)
@@ -1045,7 +1049,7 @@ class Properties(dobject):
                 v += (potssc[k] + pots[k] / 3.0)
             else:
                 v += (potssc[k] - pots[k] / 3.0)
-        v = v / self.beads.nbeads
+        v = old_div(v, self.beads.nbeads)
 
         return PkT32 - spring + v
 
@@ -1106,7 +1110,7 @@ class Properties(dobject):
                 if (atom != "" and iatom != i and latom != self.beads.names[i]):
                     continue
                 k = 3 * i
-                kmd += (p[ibead, k]**2 + p[ibead, k + 1]**2 + p[ibead, k + 2]**2) / (2.0 * m3[ibead, k])
+                kmd += old_div((p[ibead, k]**2 + p[ibead, k + 1]**2 + p[ibead, k + 2]**2), (2.0 * m3[ibead, k]))
                 ncount += 1
         elif inm > -1:
             nbeads = 1
@@ -1114,7 +1118,7 @@ class Properties(dobject):
                 if (atom != "" and iatom != i and latom != self.beads.names[i]):
                     continue
                 k = 3 * i
-                kmd += (pnm[inm, k]**2 + pnm[inm, k + 1]**2 + pnm[inm, k + 2]**2) / (2.0 * dm3[inm, k])
+                kmd += old_div((pnm[inm, k]**2 + pnm[inm, k + 1]**2 + pnm[inm, k + 2]**2), (2.0 * dm3[inm, k]))
                 ncount += 1
         else:
             nbeads = self.beads.nbeads
@@ -1128,16 +1132,16 @@ class Properties(dobject):
                         continue
                     k = 3 * i
                     for b in range(self.beads.nbeads):
-                        kmd += (pnm[b, k]**2 + pnm[b, k + 1]**2 + pnm[b, k + 2]**2) / (2.0 * dm3[b, k])
+                        kmd += old_div((pnm[b, k]**2 + pnm[b, k + 1]**2 + pnm[b, k + 2]**2), (2.0 * dm3[b, k]))
                     ncount += 1
 
         if ncount == 0:
             warning("Couldn't find an atom which matched the argument of kinetic energy, setting to zero.", verbosity.medium)
 
         if return_count:
-            return kmd / nbeads, ncount
+            return old_div(kmd, nbeads), ncount
         else:
-            return kmd / nbeads
+            return old_div(kmd, nbeads)
 
     def get_ktens(self, atom=""):
         """Calculates the quantum centroid virial kinetic energy
@@ -1229,7 +1233,7 @@ class Properties(dobject):
             kcv[4] += mi * (q[b, ai] - qc[ai]) * f[b, aj + 2] + mj * (q[b, aj + 2] - qc[aj + 2]) * f[b, ai]  # Txz
             kcv[5] += mi * (q[b, ai + 1] - qc[ai + 1]) * f[b, aj + 2] + mj * (q[b, aj + 2] - qc[aj + 2]) * f[b, ai + 1]  # Tyz
 
-        kcv *= -0.5 / (self.beads.nbeads * 2 * np.sqrt(mi * mj))
+        kcv *= old_div(-0.5, (self.beads.nbeads * 2 * np.sqrt(mi * mj)))
         if i == j:
             kcv[0:3] += 0.5 * Constants.kb * self.ensemble.temp
 
@@ -1302,7 +1306,7 @@ class Properties(dobject):
 
         # return the CV estimator MULTIPLIED BY NBEADS -- again for consistency with the virial, kstress_MD, etc...
         for i in range(3):
-            kst[i, i] += self.beads.nbeads * (np.dot(pc[i:na3:3], pc[i:na3:3] / m))
+            kst[i, i] += self.beads.nbeads * (np.dot(pc[i:na3:3], old_div(pc[i:na3:3], m)))
 
         return kst
 
@@ -1332,7 +1336,7 @@ class Properties(dobject):
 
         # return the CV estimator MULTIPLIED BY NBEADS -- again for consistency with the virial, kstress_MD, etc...
         for i in range(3):
-            kst[i, i] += self.beads.nbeads * (np.dot(pc[i:na3:3], pc[i:na3:3] / m))
+            kst[i, i] += self.beads.nbeads * (np.dot(pc[i:na3:3], old_div(pc[i:na3:3], m)))
 
         return kst
 
@@ -1388,7 +1392,7 @@ class Properties(dobject):
                 self.dbeads.q[b, 3 * i:3 * (i + 1)] += self.opening(b) * u
             dV = self.dforces.pot - self.forces.pot
 
-            n0 = np.exp(-mass * u_size / (2.0 * beta * Constants.hbar**2))
+            n0 = np.exp(old_div(-mass * u_size, (2.0 * beta * Constants.hbar**2)))
             nx_tot += n0 * np.exp(-dV * beta / float(self.beads.nbeads))
             ncount += 1
 
@@ -1415,8 +1419,8 @@ class Properties(dobject):
         self.dcell.h = self.cell.h
         self.dbeads.q[::2] = self.beads.q[::2] + eps * (q - qc)[::2]
 
-        vir1 = np.dot(((q - qc)[::2]).flatten(), (self.forces.f[::2]).flatten()) / self.beads.nbeads * 2.0
-        vir2 = np.dot(((q - qc)[::2]).flatten(), ((self.dforces.f - self.forces.f)[::2]).flatten() / eps) / self.beads.nbeads * 2.0
+        vir1 = old_div(np.dot(((q - qc)[::2]).flatten(), (self.forces.f[::2]).flatten()), self.beads.nbeads * 2.0)
+        vir2 = old_div(np.dot(((q - qc)[::2]).flatten(), old_div(((self.dforces.f - self.forces.f)[::2]).flatten(), eps)), self.beads.nbeads * 2.0)
 
         eop = 1.5 * self.beads.natoms / beta - (0.50 * vir1) + np.mean(self.forces.pots[::2])
 
@@ -1448,22 +1452,22 @@ class Properties(dobject):
         self.dcell.h = self.cell.h
         qc = dstrip(self.beads.qc)
         q = dstrip(self.beads.q)
-        v0 = self.forces.pot / self.beads.nbeads
+        v0 = old_div(self.forces.pot, self.beads.nbeads)
         while True:
             splus = np.sqrt(1.0 + dbeta)
             sminus = np.sqrt(1.0 - dbeta)
 
             for b in range(self.beads.nbeads):
                 self.dbeads[b].q = qc * (1.0 - splus) + splus * q[b, :]
-            vplus = self.dforces.pot / self.beads.nbeads
+            vplus = old_div(self.dforces.pot, self.beads.nbeads)
 
             for b in range(self.beads.nbeads):
                 self.dbeads[b].q = qc * (1.0 - sminus) + sminus * q[b, :]
-            vminus = self.dforces.pot / self.beads.nbeads
+            vminus = old_div(self.dforces.pot, self.beads.nbeads)
 
             # print "DISPLACEMENT CHECK YAMA db: %e, d+: %e, d-: %e, dd: %e" %(dbeta, (vplus-v0)*dbeta, (v0-vminus)*dbeta, abs((vplus+vminus-2*v0)/(vplus-vminus)))
 
-            if (fd_delta < 0 and abs((vplus + vminus - 2 * v0) / (vplus - vminus)) > self._DEFAULT_FDERROR and dbeta > self._DEFAULT_MINFID):
+            if (fd_delta < 0 and abs(old_div((vplus + vminus - 2 * v0), (vplus - vminus))) > self._DEFAULT_FDERROR and dbeta > self._DEFAULT_MINFID):
                 if dbeta > self._DEFAULT_MINFID:
                     dbeta *= 0.5
                     info("Reducing displacement in scaled coordinates estimator", verbosity.low)
@@ -1474,10 +1478,10 @@ class Properties(dobject):
                     eps_prime = 0.0
                     break
             else:
-                eps = ((1.0 + dbeta) * vplus - (1.0 - dbeta) * vminus) / (2 * dbeta)
+                eps = old_div(((1.0 + dbeta) * vplus - (1.0 - dbeta) * vminus), (2 * dbeta))
                 eps += 0.5 * (3 * self.beads.natoms) / beta
 
-                eps_prime = ((1.0 + dbeta) * vplus + (1.0 - dbeta) * vminus - 2 * v0) / (dbeta**2 * beta)
+                eps_prime = old_div(((1.0 + dbeta) * vplus + (1.0 - dbeta) * vminus - 2 * v0), (dbeta**2 * beta))
                 eps_prime -= 0.5 * (3 * self.beads.natoms) / beta**2
 
                 break
@@ -1510,7 +1514,7 @@ class Properties(dobject):
         qc = dstrip(self.beads.qc)
         q = dstrip(self.beads.q)
 
-        v0 = (self.forces.pot + self.forces.potsc) / self.beads.nbeads
+        v0 = old_div((self.forces.pot + self.forces.potsc), self.beads.nbeads)
 
         while True:
             splus = np.sqrt(1.0 + dbeta)
@@ -1518,13 +1522,13 @@ class Properties(dobject):
 
             for b in range(self.beads.nbeads):
                 self.dbeads[b].q = qc * (1.0 - splus) + splus * q[b, :]
-            vplus = (self.dforces.pot + self.dforces.potsc) / self.beads.nbeads
+            vplus = old_div((self.dforces.pot + self.dforces.potsc), self.beads.nbeads)
 
             for b in range(self.beads.nbeads):
                 self.dbeads[b].q = qc * (1.0 - sminus) + sminus * q[b, :]
-            vminus = (self.dforces.pot + self.dforces.potsc) / self.beads.nbeads
+            vminus = old_div((self.dforces.pot + self.dforces.potsc), self.beads.nbeads)
 
-            if (fd_delta < 0 and abs((vplus + vminus - 2 * v0) / (vplus - vminus)) > self._DEFAULT_FDERROR):
+            if (fd_delta < 0 and abs(old_div((vplus + vminus - 2 * v0), (vplus - vminus))) > self._DEFAULT_FDERROR):
                 if dbeta > self._DEFAULT_MINFID:
                     dbeta *= 0.5
                     info("Reducing displacement in scaled coordinates estimator", verbosity.low)
@@ -1535,10 +1539,10 @@ class Properties(dobject):
                     eps_prime = 0.0
                     break
             else:
-                eps = ((1.0 + dbeta) * vplus - (1.0 - dbeta) * vminus) / (2 * dbeta)
+                eps = old_div(((1.0 + dbeta) * vplus - (1.0 - dbeta) * vminus), (2 * dbeta))
                 eps += 0.5 * (3 * self.beads.natoms) / beta
 
-                eps_prime = ((1.0 + dbeta) * vplus + (1.0 - dbeta) * vminus - 2 * v0) / (dbeta**2 * beta)
+                eps_prime = old_div(((1.0 + dbeta) * vplus + (1.0 - dbeta) * vminus - 2 * v0), (dbeta**2 * beta))
                 eps_prime -= 0.5 * (3 * self.beads.natoms) / beta**2
 
                 break
@@ -1605,10 +1609,10 @@ class Properties(dobject):
             for b in range(self.beads.nbeads):
                 tcv += np.dot((self.dbeads.q[b, 3 * i:3 * (i + 1)] - self.dbeads.qc[3 * i:3 * (i + 1)]),
                               self.dforces.f[b, 3 * i:3 * (i + 1)])
-            tcv *= -0.5 / self.beads.nbeads
+            tcv *= old_div(-0.5, self.beads.nbeads)
             tcv += 1.5 * Constants.kb * self.ensemble.temp
 
-            logr = (self.dforces.pot - self.forces.pot) / (Constants.kb * self.ensemble.temp * self.beads.nbeads)
+            logr = old_div((self.dforces.pot - self.forces.pot), (Constants.kb * self.ensemble.temp * self.beads.nbeads))
 
             atcv += tcv
             atcv2 += tcv * tcv
@@ -1633,7 +1637,7 @@ class Properties(dobject):
         if ni == 0:
             raise IndexError("Couldn't find an atom which matched the argument of isotope_y")
 
-        return np.asarray([alogr / ni, alogr2 / ni, atcv / ni, atcv2 / ni, law, lawke, sawke])
+        return np.asarray([old_div(alogr, ni), old_div(alogr2, ni), old_div(atcv, ni), old_div(atcv2, ni), law, lawke, sawke])
 
     def get_isotope_thermo(self, alpha="1.0", atom=""):
         """Gives the components of the thermodynamic scaled-mass KE
@@ -1698,10 +1702,10 @@ class Properties(dobject):
             tcv = 0.0
             for b in range(self.beads.nbeads):
                 tcv += np.dot((q[b, 3 * i:3 * (i + 1)] - qc[3 * i:3 * (i + 1)]), f[b, 3 * i:3 * (i + 1)])
-            tcv *= -0.5 / self.beads.nbeads
+            tcv *= old_div(-0.5, self.beads.nbeads)
             tcv += 1.5 * Constants.kb * self.ensemble.temp
 
-            logr = (alpha - 1) * spr / (Constants.kb * self.ensemble.temp * self.beads.nbeads)
+            logr = old_div((alpha - 1) * spr, (Constants.kb * self.ensemble.temp * self.beads.nbeads))
 
             atcv += tcv
             atcv2 += tcv * tcv
@@ -1725,7 +1729,7 @@ class Properties(dobject):
         if ni == 0:
             raise IndexError("Couldn't find an atom which matched the argument of isotope_y")
 
-        return np.asarray([alogr / ni, alogr2 / ni, atcv / ni, atcv2 / ni, law, lawke, sawke])
+        return np.asarray([old_div(alogr, ni), old_div(alogr2, ni), old_div(atcv, ni), old_div(atcv2, ni), law, lawke, sawke])
 
     def get_isotope_zetatd(self, alpha="1.0", atom=""):
         """Gives the components  to directly compute the relative probablity of
@@ -1789,9 +1793,9 @@ class Properties(dobject):
         if ni == 0:
             raise IndexError("Couldn't find an atom which matched the argument of isotope_zetatd")
 
-        spraverage = sprsum / ni
-        spr2average = spr2sum / ni
-        sprexpaverage = sprexpsum / ni
+        spraverage = old_div(sprsum, ni)
+        spr2average = old_div(spr2sum, ni)
+        sprexpaverage = old_div(sprexpsum, ni)
 
         return np.asarray([spraverage, spr2average, sprexpaverage])
 
@@ -1858,7 +1862,7 @@ class Properties(dobject):
 
         if ni == 0:
             raise IndexError("Couldn't find an atom which matched the argument of isotope_zetasc")
-        return np.asarray([scsum / ni, sc2sum / ni, scexpsum / ni])
+        return np.asarray([old_div(scsum, ni), old_div(sc2sum, ni), old_div(scexpsum, ni)])
 
     def get_isotope_zetatd_4th(self, alpha="1.0", atom=""):
         """Gives the components to directly compute the relative probablity of
@@ -1924,14 +1928,14 @@ class Properties(dobject):
             for b in range(1, self.beads.nbeads, 2):
                 for j in range(3 * i, 3 * (i + 1)):
                     chin += (f[b, j]**2)
-            chin *= (1.0 / alpha - 1.0) * 1.0 / self.beads.m[i] * (4.0 / 3.0) * (1.0 / 12.0) / self.nm.omegan2
+            chin *= old_div((1.0 / alpha - 1.0) * 1.0, self.beads.m[i] * (4.0 / 3.0) * (1.0 / 12.0) / self.nm.omegan2)
 
             # Takahashi-Imada correction
             ti = 0.0
             for b in range(self.beads.nbeads):
                 for j in range(3 * i, 3 * (i + 1)):
                     ti += (f[b, j]**2)
-            ti *= (1.0 / alpha - 1.0) * 1.0 / self.beads.m[i] * (1.0 / 24.0) / self.nm.omegan2
+            ti *= old_div((1.0 / alpha - 1.0) * 1.0, self.beads.m[i] * (1.0 / 24.0) / self.nm.omegan2)
 
             td = spr
             td2 = td * td
@@ -1948,7 +1952,7 @@ class Properties(dobject):
         if ni == 0:
             raise IndexError("Couldn't find an atom which matched the argument of isotope_zetatd")
 
-        return np.asarray([tdsum / ni, td2sum / ni, tdexpsum / ni, tiexpsum / ni, chinexpsum / ni])
+        return np.asarray([old_div(tdsum, ni), old_div(td2sum, ni), old_div(tdexpsum, ni), old_div(tiexpsum, ni), old_div(chinexpsum, ni)])
 
     def get_isotope_zetasc_4th(self, alpha="1.0", atom=""):
         """Gives the components  to directly compute the relative probablity of
@@ -2022,7 +2026,7 @@ class Properties(dobject):
             chin = 0.0
             for b in range(1, self.beads.nbeads, 2):
                 for j in range(3 * i, 3 * (i + 1)):
-                    chin += (df[b, j]**2 / alpha - f[b, j]**2)
+                    chin += (old_div(df[b, j]**2, alpha) - f[b, j]**2)
             chin *= 1.0 / self.beads.m[i] * (4.0 / 3.0) * (1.0 / 12.0) / self.nm.omegan2
 
             # then, this is the odd/even correction term to the potential.
@@ -2034,7 +2038,7 @@ class Properties(dobject):
             ti = 0.0
             for b in range(self.beads.nbeads):
                 for j in range(3 * i, 3 * (i + 1)):
-                    ti += (df[b, j]**2 / alpha - f[b, j]**2)
+                    ti += (old_div(df[b, j]**2, alpha) - f[b, j]**2)
             ti *= 1.0 / self.beads.m[i] * (1.0 / 24.0) / self.nm.omegan2
 
             sc2 = sc * sc
@@ -2052,7 +2056,7 @@ class Properties(dobject):
         if ni == 0:
             raise IndexError("Couldn't find an atom which matched the argument of isotope_zetasc")
 
-        return np.asarray([scsum / ni, sc2sum / ni, scexpsum / ni, tiexpsum / ni, chinexpsum / ni])
+        return np.asarray([old_div(scsum, ni), old_div(sc2sum, ni), old_div(scexpsum, ni), old_div(tiexpsum, ni), old_div(chinexpsum, ni)])
 
     def get_chin_correction(self):
 
@@ -2065,9 +2069,9 @@ class Properties(dobject):
 
         for j in range(self.beads.natoms * 3):
             for b in range(1, self.beads.nbeads, 2):  # only loops on odd beads
-                chin += (f[b, j]**2) / m3[b, j]
+                chin += old_div((f[b, j]**2), m3[b, j])
 
-        chin *= (4.0 / 3.0) * (1.0 / 12.0) / self.nm.omegan2
+        chin *= old_div((4.0 / 3.0) * (1.0 / 12.0), self.nm.omegan2)
 
         for b in range(0, self.beads.nbeads, 2):
             chin += (-pots[b] + pots[b + 1]) / 3.0
@@ -2089,9 +2093,9 @@ class Properties(dobject):
 
         for j in range(self.beads.natoms * 3):
             for b in range(self.beads.nbeads):
-                ti += (f[b, j]**2) / m3[b, j]
+                ti += old_div((f[b, j]**2), m3[b, j])
 
-        ti *= (1.0 / 24.0) / self.nm.omegan2
+        ti *= old_div((1.0 / 24.0), self.nm.omegan2)
 
         ti *= -betaP
         ti2 = ti**2
@@ -2132,11 +2136,11 @@ class Properties(dobject):
 
             for j in range(3 * i, 3 * (i + 1)):
                 for b in range(self.beads.nbeads):
-                    ti += (f[b, j]**2) / m3[b, j]
+                    ti += old_div((f[b, j]**2), m3[b, j])
 
             ncount += 1
 
-        ti *= (1.0 / 24.0) / self.nm.omegan2 / self.beads.nbeads
+        ti *= old_div((1.0 / 24.0), self.nm.omegan2 / self.beads.nbeads)
         if ncount == 0:
             warning("Couldn't find an atom which matched the argument of TI potential, setting to zero.", verbosity.medium)
 
@@ -2166,7 +2170,7 @@ class Trajectories(dobject):
                           'func': (lambda: 1.0 * self.system.beads.q)},
             "velocities": {"dimension": "velocity",
                            "help": "The velocity trajectories. Will print out one file per bead, unless the bead attribute is set by the user.",
-                           'func': (lambda: self.system.beads.p / self.system.beads.m3)},
+                           'func': (lambda: old_div(self.system.beads.p, self.system.beads.m3))},
             "momenta": {"dimension": "momentum",
                         "help": "The momentum trajectories. Will print out one file per bead, unless the bead attribute is set by the user.",
                         'func': (lambda: 1.0 * self.system.beads.p)},
@@ -2182,19 +2186,19 @@ class Trajectories(dobject):
                            'func': (lambda: 1.0 * self.system.beads.qc)},
             "v_centroid": {"dimension": "velocity",
                            "help": "The centroid velocity.",
-                           'func': (lambda: self.system.beads.pc / self.system.beads.m3[0])},
+                           'func': (lambda: old_div(self.system.beads.pc, self.system.beads.m3[0]))},
             "x_centroid_even": {"dimension": "length",
                                 "help": "The suzuki-chin centroid coordinates.",
-                                'func': (lambda: 2 * np.sum(self.system.beads.q[::2, :], axis=0) / self.system.beads.nbeads)},
+                                'func': (lambda: old_div(2 * np.sum(self.system.beads.q[::2, :], axis=0), self.system.beads.nbeads))},
             "v_centroid_even": {"dimension": "velocity",
                                 "help": "The suzuki-chin centroid velocity.",
-                                'func': (lambda: 2 * np.sum((self.system.beads.p / self.system.beads.m3)[::2, :], axis=0) / self.system.beads.nbeads)},
+                                'func': (lambda: old_div(2 * np.sum((old_div(self.system.beads.p, self.system.beads.m3))[::2, :], axis=0), self.system.beads.nbeads))},
             "x_centroid_odd": {"dimension": "length",
                                "help": "The suzuki-chin centroid coordinates.",
-                               'func': (lambda: 2 * np.sum(self.system.beads.q[1::2, :], axis=0) / self.system.beads.nbeads)},
+                               'func': (lambda: old_div(2 * np.sum(self.system.beads.q[1::2, :], axis=0), self.system.beads.nbeads))},
             "v_centroid_odd": {"dimension": "velocity",
                                "help": "The suzuki-chin centroid velocity.",
-                               'func': (lambda: 2 * np.sum((self.system.beads.p / self.system.beads.m3)[1::2, :], axis=0) / self.system.beads.nbeads)},
+                               'func': (lambda: old_div(2 * np.sum((old_div(self.system.beads.p, self.system.beads.m3))[1::2, :], axis=0), self.system.beads.nbeads))},
             "p_centroid": {"dimension": "momentum",
                            "help": "The centroid momentum.",
                            'func': (lambda: 1.0 * self.system.beads.pc)},
@@ -2242,7 +2246,7 @@ class Trajectories(dobject):
         self._threadlock = system._propertylock
 
         if system.beads.nbeads >= 2:
-            self.scdbeads = system.beads.copy(system.beads.nbeads / 2)
+            self.scdbeads = system.beads.copy(old_div(system.beads.nbeads, 2))
             self.scdcell = system.cell.copy()
             self.scdforces = self.system.forces.copy(self.scdbeads, self.scdcell)
 
@@ -2254,7 +2258,7 @@ class Trajectories(dobject):
         rv = np.zeros(self.system.beads.natoms * 3)
         for b in range(self.system.beads.nbeads):
             rv[:] += (self.system.beads.q[b] - self.system.beads.qc) * self.system.forces.f[b]
-        rv *= -0.5 / self.system.beads.nbeads
+        rv *= old_div(-0.5, self.system.beads.nbeads)
         rv += 0.5 * Constants.kb * self.system.ensemble.temp
         return rv
 
@@ -2274,7 +2278,7 @@ class Trajectories(dobject):
             rv[:, 1] += dq[:, 0] * f[:, 2] + dq[:, 2] * f[:, 0]
             rv[:, 2] += dq[:, 1] * f[:, 2] + dq[:, 2] * f[:, 1]
         rv *= 0.5
-        rv *= -0.5 / self.system.beads.nbeads
+        rv *= old_div(-0.5, self.system.beads.nbeads)
 
         return rv.reshape(self.system.beads.natoms * 3)
 
@@ -2339,7 +2343,7 @@ class Trajectories(dobject):
             zetatd[i, 0] *= 0.5 * (alpha - 1.0) * self.system.beads.m[i] * self.system.nm.omegan2
 
         zetatd[:, 1] = np.square(zetatd[:, 0])
-        zetatd[:, 2] = np.exp(-1.0 / (Constants.kb * self.system.ensemble.temp * nb) * zetatd[:, 0])
+        zetatd[:, 2] = np.exp(old_div(-1.0, (Constants.kb * self.system.ensemble.temp * nb) * zetatd[:, 0]))
 
         return zetatd.reshape(nat * 3)
 
@@ -2375,7 +2379,7 @@ class Trajectories(dobject):
 
         qc = dstrip(self.system.beads.qc)
         q = dstrip(self.system.beads.q)
-        v0 = self.system.forces.pot / nb
+        v0 = old_div(self.system.forces.pot, nb)
         self.dbeads.q = q
 
         for i in range(nat):
@@ -2386,7 +2390,7 @@ class Trajectories(dobject):
             for b in range(nb):
                 for j in range(3 * i, 3 * (i + 1)):
                     self.dbeads.q[b, j] = qc[j] * (1.0 - scalefactor) + scalefactor * q[b, j]
-            zetasc[i, 0] = self.dforces.pot / nb - v0
+            zetasc[i, 0] = old_div(self.dforces.pot, nb) - v0
 
             self.dbeads.q = q
 

@@ -1,7 +1,10 @@
 #!/usr/bin/env python2
 
 from __future__ import print_function
+from __future__ import division
 
+from builtins import next
+from past.utils import old_div
 import os
 import sys
 import numpy as np
@@ -102,7 +105,7 @@ def main(fns_in, fn_out, begin, end, stride, wrap, unwrap):
 
 def wrap_positions(frame):
     pos = frame['atoms'].q.copy()
-    pos.shape = (len(pos)/3,3)
+    pos.shape = (old_div(len(pos),3),3)
     cell = frame['cell'].h
     cell_inv = np.linalg.inv(cell)
     s = np.dot(cell_inv,pos.T)
@@ -115,10 +118,10 @@ def unwrap_positions(frame,framelast):
         return frame
 
     poslast_uwr       = framelast['atoms'].q.copy()
-    poslast_uwr.shape = (len(poslast_uwr)/3,3)
+    poslast_uwr.shape = (old_div(len(poslast_uwr),3),3)
 
     pos               = frame['atoms'].q.copy()
-    pos.shape         = (len(pos)/3,3)
+    pos.shape         = (old_div(len(pos),3),3)
 
     d = pos - poslast_uwr
 

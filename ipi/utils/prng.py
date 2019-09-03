@@ -12,6 +12,7 @@ it had not been stopped.
 # See the "licenses" directory for full license information.
 
 
+from builtins import object
 import numpy as np
 
 

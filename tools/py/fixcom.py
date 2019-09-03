@@ -10,8 +10,12 @@ Assumes the input files are in pdb format names prefix.pos_*.pdb.
 Syntax:
    mergebeadspdb.py prefix
 """
+from __future__ import division
 
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import sys
 import glob
@@ -38,7 +42,7 @@ def main(prefix, suffix="pos", outprefix="fixcom"):
     lout = []
     for b in range(nbeads):
         # zero-padded bead number
-        padb = (("%0" + str(int(1 + np.floor(np.log(nbeads) / np.log(10)))) + "d") % (b))
+        padb = (("%0" + str(int(1 + np.floor(old_div(np.log(nbeads), np.log(10))))) + "d") % (b))
         lout.append(open(prefix + "." + outprefix + "." + suffix + "_" + padb + "." + imode[b], "a"))
 
     while True:

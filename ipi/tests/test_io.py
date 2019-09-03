@@ -10,6 +10,7 @@ from __future__ import absolute_import
 # See the "licenses" directory for full license information.
 
 
+from builtins import range
 import filecmp
 import os
 
