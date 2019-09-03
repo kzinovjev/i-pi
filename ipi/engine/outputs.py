@@ -109,8 +109,8 @@ class BaseOutput(object):
             self.out.close()
             os.remove(self.filename)
 
-    def __getattr__(self, name):
-        return getattr(self.out, name)
+#    def __getattr__(self, name):
+#        return getattr(self.out, name)
 
 
 class PropertyOutput(BaseOutput):

@@ -407,7 +407,7 @@ class Initializer(dobject):
                 rq = init_vector(v, self.nbeads, dimension="length", units=v.units)
 
                 nbeads, natoms = rq.shape
-                natoms /= 3
+                natoms //= 3
 
                 # check if we must initialize the simulation beads
                 if simul.beads.nbeads == 0:
@@ -484,7 +484,7 @@ class Initializer(dobject):
                 # read the atomic velocities as a vector
                 rv = init_vector(v, self.nbeads, dimension="velocity", units=v.units)
                 nbeads, natoms = rv.shape
-                natoms /= 3
+                natoms //= 3
 
                 # checks if we must initialize the simulation beads
                 if simul.beads.nbeads == 0 or not fmass:

@@ -42,12 +42,16 @@ def getkey(pstring):
        argument lists and units key words.
     """
 
+    if type(pstring) is np.bytes_:
+      pstring = pstring.decode("utf-8") 
+
     pa = pstring.find('(')
     if pa < 0:
         pa = len(pstring)
     pu = pstring.find('{')
     if pu < 0:
         pu = len(pstring)
+    print (pstring[0:min(pa, pu)].strip())
     return pstring[0:min(pa, pu)].strip()
 
 
@@ -62,6 +66,9 @@ def getall(pstring):
        argument list and key word argument list.
     """
 
+    if type(pstring) is np.bytes_:
+      pstring = pstring.decode("utf-8")
+ 
     unit = ""
     arglist = ()
     kwarglist = {}
