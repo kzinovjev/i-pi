@@ -1,11 +1,12 @@
 """Tests that the Lennard-Jones test case works properly."""
+from __future__ import absolute_import
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
 # See the "licenses" directory for full license information.
 
 
-from common import SimulationTest
+from .common import SimulationTest
 
 
 def test_lj_gas():

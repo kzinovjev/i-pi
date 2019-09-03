@@ -1,4 +1,5 @@
 """Creates objects that hold the whole simulation."""
+from __future__ import print_function
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
@@ -204,7 +205,7 @@ class InputSimulation(Input):
             elif k == "system_template":
                 syslist += v.fetch()  # this will actually generate automatically a bunch of system objects with the desired properties set automatically to many values
             elif k == "ffsocket" or k == "fflj" or k == 'ffquip' or k == "ffdebye" or k == "ffplumed":
-                print "fetching", k
+                print("fetching", k)
                 fflist.append(v.fetch())
             elif k == "ffyaff":
                 fflist.append(v.fetch())

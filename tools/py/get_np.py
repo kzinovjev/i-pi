@@ -17,6 +17,7 @@ will be output.
 Syntax:
    trimsim.py inputfile.xml
 """
+from __future__ import print_function
 
 
 import sys
@@ -145,9 +146,9 @@ def get_np(path2iipi, bsize=20000, nskip=300, si=15.0, sf=-15.0, ns=10000):
         psqmedz = psqmedz + np.dot(pzgrid**2, np.asarray(nplistz)[i, :]) / normz
         psqmed2z = psqmed2z + (np.dot(pzgrid**2, np.asarray(nplistz)[i, :]) / normz)**2
 
-    print 'number of blocks', n_block
-    print 'av_px^2', psqmedx / n_block, 'sigmax', np.sqrt((psqmed2x / n_block) - (psqmedx / n_block)**2) / np.sqrt(n_block)
-    print 'av_py^2', psqmedy / n_block, 'sigmay', np.sqrt((psqmed2y / n_block) - (psqmedy / n_block)**2) / np.sqrt(n_block)
-    print 'av_pz^2', psqmedz / n_block, 'sigmaz', np.sqrt((psqmed2z / n_block) - (psqmedz / n_block)**2) / np.sqrt(n_block)
+    print('number of blocks', n_block)
+    print('av_px^2', psqmedx / n_block, 'sigmax', np.sqrt((psqmed2x / n_block) - (psqmedx / n_block)**2) / np.sqrt(n_block))
+    print('av_py^2', psqmedy / n_block, 'sigmay', np.sqrt((psqmed2y / n_block) - (psqmedy / n_block)**2) / np.sqrt(n_block))
+    print('av_pz^2', psqmedz / n_block, 'sigmaz', np.sqrt((psqmed2z / n_block) - (psqmedz / n_block)**2) / np.sqrt(n_block))
 
 if __name__ == '__main__': get_np(*sys.argv[1:])

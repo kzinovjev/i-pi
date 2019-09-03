@@ -1,4 +1,5 @@
 """Common helper functions for running the tests."""
+from __future__ import print_function
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
@@ -73,8 +74,8 @@ class SimulationTest(object):
 
         # Start simulation
         # TODO
-        print subprocess.check_output("ls", shell=True)
-        print subprocess.check_output("pwd", shell=True)
+        print(subprocess.check_output("ls", shell=True))
+        print(subprocess.check_output("pwd", shell=True))
 
         # wait for driver to finish
         p.wait()

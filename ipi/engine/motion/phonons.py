@@ -16,6 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http.//www.gnu.org/licenses/>.
 """
+from __future__ import print_function
 
 __all__ = ['DynMatrixMover']
 
@@ -106,29 +107,29 @@ class DynMatrixMover(Motion):
         # prints out the dynamical matrix
 
         outfile = self.output_maker.get_output(self.prefix + '.dynmat', 'w')
-        print >> outfile, "# Dynamical matrix (atomic units)" + wstr
+        print("# Dynamical matrix (atomic units)" + wstr, file=outfile)
         for i in range(3 * self.beads.natoms):
-            print >> outfile, ' '.join(map(str, dmatx[i]))
+            print(' '.join(map(str, dmatx[i])), file=outfile)
         outfile.close()
 
         # also prints out the Hessian
         outfile = self.output_maker.get_output(self.prefix + '.hess', 'w')
-        print >> outfile, "# Hessian matrix (atomic units)" + wstr
+        print("# Hessian matrix (atomic units)" + wstr, file=outfile)
         for i in range(3 * self.beads.natoms):
-            print >> outfile, ' '.join(map(str, dmatx[i] / (self.ism[i] * self.ism)))
+            print(' '.join(map(str, dmatx[i] / (self.ism[i] * self.ism))), file=outfile)
         outfile.close()
 
         # eigsys=np.linalg.eigh(dmatx)
         eigsys = np.linalg.eigh(dmatx)
         # prints eigenvalues & eigenvectors
         outfile = self.output_maker.get_output(self.prefix + '.eigval', 'w')
-        print >> outfile, "# Eigenvalues (atomic units)" + wstr
-        print >> outfile, '\n'.join(map(str, eigsys[0]))
+        print("# Eigenvalues (atomic units)" + wstr, file=outfile)
+        print('\n'.join(map(str, eigsys[0])), file=outfile)
         outfile.close()
         outfile = self.output_maker.get_output(self.prefix + '.eigvec', 'w')
-        print >> outfile, "# Eigenvector  matrix (normalized)"
+        print("# Eigenvector  matrix (normalized)", file=outfile)
         for i in range(0, 3 * self.beads.natoms):
-            print >> outfile, ' '.join(map(str, eigsys[1][i]))
+            print(' '.join(map(str, eigsys[1][i])), file=outfile)
         outfile.close()
 
         eigmode = 1.0 * eigsys[1]
@@ -137,9 +138,9 @@ class DynMatrixMover(Motion):
         for i in range(0, 3 * self.beads.natoms):
             eigmode[:, i] /= np.sqrt(np.dot(eigmode[:, i], eigmode[:, i]))
         outfile = self.output_maker.get_output(self.prefix + '.mode', 'w')
-        print >> outfile, "# Phonon modes (mass-scaled)"
+        print("# Phonon modes (mass-scaled)", file=outfile)
         for i in range(0, 3 * self.beads.natoms):
-            print >> outfile, ' '.join(map(str, eigmode[i]))
+            print(' '.join(map(str, eigmode[i])), file=outfile)
         outfile.close()
 
     def apply_asr(self, dm):

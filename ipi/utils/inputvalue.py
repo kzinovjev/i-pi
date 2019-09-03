@@ -12,6 +12,7 @@ are then output to the checkpoint file when a restart file is required.
 Also deals with checking for user input errors, of the form of misspelt tags,
 bad data types, and failure to input required fields.
 """
+from __future__ import print_function
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
@@ -235,7 +236,7 @@ class Input(object):
             newfield = self.dynamic[name][0](**self.dynamic[name][1])
             newfield.parse(xml)
         except:
-            print "Error parsing " + name + " from " + str(xml)
+            print("Error parsing " + name + " from " + str(xml))
             raise
         self.extra.append((name, newfield))
 

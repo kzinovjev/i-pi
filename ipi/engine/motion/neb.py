@@ -2,6 +2,7 @@
 
 Algorithms implemented by Michele Ceriotti and Bejamin Helfrecht, 2015
 """
+from __future__ import print_function
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
@@ -252,7 +253,7 @@ class NEBBFGSMover(object):
                     btau[ii] = d2 * maxpot + d1 * minpot
 
                 else:
-                    print "Error in NEB tangents: Energy of images are equal"
+                    print("Error in NEB tangents: Energy of images are equal")
 
             btau[ii] *= 1.0 / np.linalg.norm(btau)
 

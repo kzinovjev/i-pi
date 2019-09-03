@@ -3,6 +3,7 @@
 Note that this will only run if you have Python version 2.5 or later.
 Otherwise, replace all the with statements with f = filestream.
 """
+from __future__ import absolute_import
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
@@ -15,7 +16,7 @@ import os
 import numpy as np
 from numpy.testing import assert_equal
 
-from common import local
+from .common import local
 from ipi.utils.units import unit_to_internal
 from ipi.utils.io import iter_file, read_file, print_file
 

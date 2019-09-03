@@ -1,4 +1,5 @@
 """Classes to deal with calls for a soft exit."""
+from __future__ import print_function
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
@@ -77,7 +78,7 @@ class Softexit(object):
            message: The message to output to standard output.
         """
 
-        print "SOFTEXIT CALLED FROM THREAD", threading.currentThread(), message
+        print("SOFTEXIT CALLED FROM THREAD", threading.currentThread(), message)
         if not self.triggered:    # avoid double calls from different threads
             self.exiting = True
             self.triggered = True

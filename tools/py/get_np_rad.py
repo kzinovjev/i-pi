@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+from __future__ import print_function
 description = """
 Computes the quantum momentum distribution of a particle given the end-to-end distances.  
 It computes both the three components of the momentum distribution and the spherically-averaged 
@@ -233,7 +234,7 @@ def get_np(qpath_file, fpath_file, prefix, bsize, P, m, T, s, ns, skip, der):
     n_blocks = int(len(qpath) / bsize)
 
     if n_blocks == 0:
-        print "# ERROR: Not enough data to build a block"
+        print("# ERROR: Not enough data to build a block")
         exit()
 
     for x in xrange(n_blocks):
@@ -295,7 +296,7 @@ def get_np(qpath_file, fpath_file, prefix, bsize, P, m, T, s, ns, skip, der):
     avg_r2_4pi_h = avg_r2_4pi_h / norm_r2_4pi_h
     err_r2_4pi_h = np.std(np.asarray(r2_4pi_h_list) / (norm_r2_4pi_h / n_blocks), axis=0) / np.sqrt(n_blocks)
     np.savetxt(str(prefix + "4pi_r2_h" + ".data"), np.c_[r, avg_r2_4pi_h, err_r2_4pi_h])
-    print "# Printing the radial distribution of the end-to-end distance :", str(prefix + "4pi_r2_h" + ".data")
+    print("# Printing the radial distribution of the end-to-end distance :", str(prefix + "4pi_r2_h" + ".data"))
 
     # Block averages the radial momentum distributions and estimates errors.
     avg_p2_4pi_np = np.sum(np.asarray(p2_4pi_np_list), axis=0)
@@ -303,12 +304,12 @@ def get_np(qpath_file, fpath_file, prefix, bsize, P, m, T, s, ns, skip, der):
     avg_p2_4pi_np = avg_p2_4pi_np / norm_p2_4pi_np
     err_p2_4pi_np = np.std(np.asarray(p2_4pi_np_list) / (norm_p2_4pi_np / n_blocks), axis=0) / np.sqrt(n_blocks)
     np.savetxt(str(prefix + "4pi_p2_np" + ".data"), np.c_[p, avg_p2_4pi_np, err_p2_4pi_np])
-    print "# Printing the radial distribution of the particle momentum :", str(prefix + "4pi_p2_np" + ".data")
+    print("# Printing the radial distribution of the particle momentum :", str(prefix + "4pi_p2_np" + ".data"))
 
     # Also calulates the average value of p^2.
     avg_avgp2 = np.sum(np.asarray(avgp2_list), axis=0) / norm_p2_4pi_np
     err_avgp2 = np.std(np.asarray(avgp2_list) / (norm_p2_4pi_np / n_blocks), axis=0) / np.sqrt(n_blocks)
-    print "# avg <p2> :", avg_avgp2, "+/-", err_avgp2
+    print("# avg <p2> :", avg_avgp2, "+/-", err_avgp2)
 
 
 if __name__ == '__main__':

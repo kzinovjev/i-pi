@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 
+from __future__ import print_function
 __author__ = 'Igor Poltavsky'
 __version__ = '1.0'
 

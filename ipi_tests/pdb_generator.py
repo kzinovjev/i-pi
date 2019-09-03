@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 """ Generate fake parameters useful to test the softare.
 """
+from __future__ import print_function
 
 import tempfile as tmp
 import numpy as np
@@ -77,4 +78,4 @@ if __name__ == '__main__':
 
     # Fast autocheck... if the test is wrong itself... it is bad ;)
     natoms = 100
-    print xyz_rand(natoms, '')[0]
+    print(xyz_rand(natoms, '')[0])

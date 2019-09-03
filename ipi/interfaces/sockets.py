@@ -4,6 +4,7 @@ Deals with creating the socket, transmitting and receiving data, accepting and
 removing different driver routines and the parallelization of the force
 calculation.
 """
+from __future__ import print_function
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
@@ -326,7 +327,7 @@ class Driver(DriverSocket):
                 self.sendall(pos)
                 self.status = Status.Up | Status.Busy
             except:
-                print "Error in sendall, resetting status"
+                print("Error in sendall, resetting status")
                 self.get_status()
                 return
         else:

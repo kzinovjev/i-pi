@@ -15,6 +15,7 @@ be installed in the Python module directory, or the i-pi
 main directory must be added to the PYTHONPATH environment variable.
 
 """
+from __future__ import print_function
 # Y. Litman 2017
 
 import os
@@ -55,11 +56,11 @@ manual = args.manual
 
 if not manual:
     if chk == 'None':
-        print 'Manual mode not specified and checkpoint file name not provided'
+        print('Manual mode not specified and checkpoint file name not provided')
         sys.exit()
 else:
     if input_geo == 'None':
-        print 'Manual mode  specified and geometry file name not provided'
+        print('Manual mode  specified and geometry file name not provided')
         sys.exit()
 
 # OPEN AND READ   ###########################################################3
@@ -70,7 +71,7 @@ if input_geo != 'None' or chk != 'None':
         if (os.path.exists(input_geo)):
             ipos = open(input_geo, "r")
         else:
-            print "We can't find %s " % input_geo
+            print("We can't find %s " % input_geo)
             sys.exit()
 
         pos = list()
@@ -94,7 +95,7 @@ if input_geo != 'None' or chk != 'None':
         if (os.path.exists(chk)):
             simulation = Simulation.load_from_xml(chk, custom_verbosity='low', request_banner=False)
         else:
-            print "We can't find %s " % chk
+            print("We can't find %s " % chk)
             sys.exit()
         cell = simulation.syslist[0].cell
         beads = simulation.syslist[0].motion.beads.copy()
@@ -103,9 +104,9 @@ if input_geo != 'None' or chk != 'None':
         q = beads.q
         atom = beads._blist[0]
 
-    print ' '
-    print 'We have a half ring polymer made of %i beads and %i atoms.' % (nbeads, natoms)
-    print 'We will expand the ring polymer to get a half polymer of %i beads.' % nbeadsNew
+    print(' ')
+    print('We have a half ring polymer made of %i beads and %i atoms.' % (nbeads, natoms))
+    print('We will expand the ring polymer to get a half polymer of %i beads.' % nbeadsNew)
 
     # Compose the full ring polymer.
     #q2 = np.concatenate((q, np.flipud(q)), axis=0)
@@ -124,11 +125,11 @@ if input_geo != 'None' or chk != 'None':
         # print_file("xyz",pos[0],cell,out,title='cell  }')
     out.close()
 
-    print 'The new Instanton geometry (half polymer) was generated'
-    print 'Check NEW_INSTANTON.xyz'
-    print ''
-    print 'Remeber to change the number of beads (%i) in your input' % nbeadsNew
-    print ''
+    print('The new Instanton geometry (half polymer) was generated')
+    print('Check NEW_INSTANTON.xyz')
+    print('')
+    print('Remeber to change the number of beads (%i) in your input' % nbeadsNew)
+    print('')
 
 if input_hess != 'None' or chk != 'None':
 
@@ -136,7 +137,7 @@ if input_hess != 'None' or chk != 'None':
         if (os.path.exists(input_hess)):
             hess = open(input_hess, "r")
         else:
-            print "We can't find %s " % input_hess
+            print("We can't find %s " % input_hess)
             sys.exit()
         h = np.zeros((natoms * 3)**2 * nbeads)
         aux = hess.readline().split()
@@ -151,16 +152,16 @@ if input_hess != 'None' or chk != 'None':
         try:
             h = simulation.syslist[0].motion.hessian.copy()
         except:
-            print "We don't have a hessian so there is nothing more to do"
+            print("We don't have a hessian so there is nothing more to do")
             sys.exit()
         if np.linalg.norm(h) < 1e-13:
-            print "We don't have a hessian so there is nothing more to do"
+            print("We don't have a hessian so there is nothing more to do")
             sys.exit()
 
-    print 'The new hessian is %i x %i.' % (3 * natoms, natoms * 3 * nbeadsNew)
+    print('The new hessian is %i x %i.' % (3 * natoms, natoms * 3 * nbeadsNew))
     out = open("NEW_HESSIAN.dat", "w")
 
-    print 'Creating matrix... '
+    print('Creating matrix... ')
 #    hessian = get_double_h(nbeads, natoms, h)
 
     hessian = h
@@ -187,12 +188,12 @@ if input_hess != 'None' or chk != 'None':
     new_h_half = new_h[:, 0:size2 / 2]
     np.savetxt(out, new_h.reshape(1, new_h.size))
 
-    print 'The new physical Hessian (half polymer) was generated'
-    print 'Check NEW_HESSIAN.dat'
-    print ''
-    print 'Remeber to adapt/add the following line in your input:'
-    print ''
-    print " <hessian mode='file' shape='(%i, %i)' >hessian.dat</hessian>" % (3 * natoms, natoms * 3 * nbeadsNew)
-    print ''
+    print('The new physical Hessian (half polymer) was generated')
+    print('Check NEW_HESSIAN.dat')
+    print('')
+    print('Remeber to adapt/add the following line in your input:')
+    print('')
+    print(" <hessian mode='file' shape='(%i, %i)' >hessian.dat</hessian>" % (3 * natoms, natoms * 3 * nbeadsNew))
+    print('')
 
 sys.exit()

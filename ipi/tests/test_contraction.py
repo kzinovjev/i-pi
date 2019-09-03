@@ -1,4 +1,5 @@
 """Tests ring polymer contraction."""
+from __future__ import print_function
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
@@ -21,17 +22,17 @@ def check_up_and_down_scaling(n, q):
     """
 
     rescale = nmtransform.nm_rescale(q.shape[0], n)
-    print "Initial position of the beads:"
-    print q, q.shape, (q.shape[0], n)
+    print("Initial position of the beads:")
+    print(q, q.shape, (q.shape[0], n))
 
     # rescale up to the n beads
     beads_n = rescale.b1tob2(q)
-    print "Upscaled to %d beads:" % n
-    print beads_n, beads_n.shape
+    print("Upscaled to %d beads:" % n)
+    print(beads_n, beads_n.shape)
 
     beads_final = rescale.b2tob1(beads_n)
-    print "Final position of the beads:"
-    print beads_final
+    print("Final position of the beads:")
+    print(beads_final)
 
     assert_almost_equal(q, beads_final)
     return beads_n

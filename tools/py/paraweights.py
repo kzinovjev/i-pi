@@ -27,6 +27,7 @@ trajectory weights.
 Syntax:
    paraweights.py inputfile.xml [prefix] [temperature(K)] [skip]
 """
+from __future__ import print_function
 
 
 import sys
@@ -56,7 +57,7 @@ def main(inputfile, prefix="PTW-", ttemp="300.0", skip="2000"):
     isimul.parse(xmlrestart.fields[0][1])
     verbosity.level = "quiet"
     banner()
-    print "# Printing out temperature re-weighing factors for a parallel tempering simulation"
+    print("# Printing out temperature re-weighing factors for a parallel tempering simulation")
     simul = isimul.fetch()
 
     if simul.mode != "paratemp":

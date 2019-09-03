@@ -9,6 +9,7 @@ third column : the accumulated average of the exponential estimator
 fourth column : 1000ln(<exp>)
 5-7th column : for the other type of isotope substitution
 """
+from __future__ import print_function
 
 import numpy as np
 from math import log
@@ -20,7 +21,7 @@ equilibriumstep = 4000
 table = np.loadtxt('simulation.out')
 
 (asize, bsize) = np.shape(table)
-print asize, bsize
+print(asize, bsize)
 
 out = np.zeros((asize - equilibriumstep - 1, 7))
 

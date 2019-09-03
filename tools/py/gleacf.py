@@ -17,6 +17,7 @@ will be output.
 Syntax:
    trimsim.py inputfile.xml
 """
+from __future__ import print_function
 
 
 import sys
@@ -96,7 +97,7 @@ def gleKernel(omega, Ap, Dp):
     om2list = omlist**2
     y = 0
     if Ap[0, 0] < 2.0 * dw:
-        print "# WARNING: White-noise term is weaker than the spacing of the frequency grid. Will increase automatically to avoid instabilities in the numerical integration."
+        print("# WARNING: White-noise term is weaker than the spacing of the frequency grid. Will increase automatically to avoid instabilities in the numerical integration.")
 
     # outer loop over the physical frequency
     for omega_0 in omlist:
@@ -198,15 +199,15 @@ def gleacf(path2ixml, path2iA, path2iC, path2ifacf, oprefix, action, nrows, stri
     iy = ifacf[:, 1]
 
     # computes the facf kernel
-    print "# computing the kernel."
+    print("# computing the kernel.")
     ker = gleKernel(ix, Ap, Dp)
 
     # (de-)convolutes the spectrum
     if(action == "conv"):
-        print "# printing the output spectrum."
+        print("# printing the output spectrum.")
         output_facf((ix, np.dot(iy, ker.T)), oprefix, input_facf(path2ifacf, nrows, 1))
     elif(action == "deconv"):
-        print "# deconvoluting the input spectrum."
+        print("# deconvoluting the input spectrum.")
         oy = ISRA(ix, ker, iy, dparam, oprefix)
 
 if __name__ == '__main__':

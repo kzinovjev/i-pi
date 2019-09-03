@@ -4,6 +4,7 @@ Contains the algorithms which propagate the thermostatting steps in the constant
 temperature ensembles. Includes the new GLE thermostat, which can be used to
 run PI+GLE dynamics, reducing the number of path integral beads required.
 """
+from __future__ import print_function
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers

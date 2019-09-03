@@ -52,6 +52,7 @@ Functions:
         nichols: nichols algorithm for optimization (minimum or transition state)
         Simons, J. and Nichols, J. (1990), Int. J. Quantum Chem., 38: 263-276. doi: 10.1002/qua.560382427
 """
+from __future__ import print_function
 
 # TODO: CLEAN UP BFGS, L-BFGS, L-BFGS_nls TO NOT EXIT WITHIN MINTOOLS.PY BUT USE UNIVERSAL SOFTEXIT
 
@@ -671,7 +672,7 @@ def min_trm(f, h, tr):
     if (min_d > 0.0):
 
         if(neg != 0):
-            print "problem in 'find'!!!"
+            print("problem in 'find'!!!")
         if (np.linalg.norm(DXE) < tr):
             DX = np.dot(w, DXE)
             DX = DX.reshape(shape)
@@ -696,7 +697,7 @@ def min_trm(f, h, tr):
             lamb_min = max(lamb, lamb_min)
 
         if dy > 0.0 or lamb_min > lamb_max:
-            print 'Problem in find. II'
+            print('Problem in find. II')
 
         lamb = lamb - y / dy
         if lamb <= lamb_min or lamb >= lamb_max:
@@ -1129,7 +1130,7 @@ def L_BFGS_nls(x0, d0, fdf, qlist, glist, fdf0=None, big_step=100, tol=1.0e-6, i
             info(" @MINIMIZE: Scaled step size", verbosity.debug)
 
         x = np.add(x0, d0)
-        print "step size:", np.sqrt(np.dot(d0.flatten(), d0.flatten()))
+        print("step size:", np.sqrt(np.dot(d0.flatten(), d0.flatten())))
         fx, g = fdf(x)
 
     info(" @MINIMIZE: Started L-BFGS", verbosity.debug)

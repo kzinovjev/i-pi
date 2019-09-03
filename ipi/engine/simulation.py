@@ -5,6 +5,7 @@ level objects used in the simulation, and controls all the steps that are
 not inherently system dependent, like the running of each time step,
 choosing which properties to initialise, and which properties to output.
 """
+from __future__ import print_function
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
@@ -95,13 +96,13 @@ class Simulation(dobject):
 
         # echo the input file if verbose enough
         if verbosity.level > 0:
-            print " # i-PI loaded input file: ", fn_input
+            print(" # i-PI loaded input file: ", fn_input)
         if verbosity.level > 1:
-            print " --- begin input file content ---"
+            print(" --- begin input file content ---")
             ifile = open(fn_input, "r")
             for line in ifile.readlines():
-                print line,
-            print " ---  end input file content  ---"
+                print(line, end=' ')
+            print(" ---  end input file content  ---")
             ifile.close()
 
         return simulation

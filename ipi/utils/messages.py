@@ -1,4 +1,5 @@
 """Classes to print info, warnings and errors to standard output during the simulation."""
+from __future__ import print_function
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
@@ -99,7 +100,7 @@ verbosity = Verbosity()
 def banner():
     """Prints out a banner."""
 
-    print """
+    print("""
  ____       ____       ____       ____
 /    \     /    \     /    \     /    \ 
 |  #################################  |
@@ -115,7 +116,7 @@ def banner():
 |  #################################  |
 \____/     \____/     \____/     \____/
 
-    """
+    """)
 
 
 def info(text="", show=True):
@@ -129,7 +130,7 @@ def info(text="", show=True):
 
     if not show:
         return
-    print text
+    print(text)
 
 
 def warning(text="", show=True):
@@ -147,4 +148,4 @@ def warning(text="", show=True):
         return
     if verbosity.trace:
         traceback.print_stack(file=sys.stdout)
-    print " !W! " + text
+    print(" !W! " + text)

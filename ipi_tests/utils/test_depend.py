@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+from __future__ import print_function
 from ipi.utils.depend import *
 import numpy as np
 import threading
@@ -74,11 +75,11 @@ def threadB(Aobj, Bobj):
         time.sleep(0.0001)
         Bobj.scalar = 4 + i
         Bobj.vector = np.sqrt(i)
-        print Bobj.dvector[0]
+        print(Bobj.dvector[0])
 
 
 # myB.dvector should always contain B.vector*B.scalar- A.scalar
-print myB.dvector - mbv * (mbs - mas)
+print(myB.dvector - mbv * (mbs - mas))
 
 # now try with threads
 ta = threading.Thread(target=threadA, name="TA", kwargs={"Aobj": myA})
@@ -90,4 +91,4 @@ tb.start()
 ta.join()
 tb.join()
 
-print myB.dvector - myB.vector * (myB.scalar - myA.scalar)
+print(myB.dvector - myB.vector * (myB.scalar - myA.scalar))

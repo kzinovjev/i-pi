@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 __author__ = 'Igor Poltavsky'
 __version__ = '1.0'
 
@@ -66,24 +67,24 @@ def totalEnergy(prefix, temp, ss=0, unit=''):
     # check that we found the same number of positions and forces files
     nbeads = len(fns_pos)
     if nbeads != len(fns_for):
-        print fns_pos
-        print fns_for
+        print(fns_pos)
+        print(fns_for)
         raise ValueError("Mismatch between number of input files for forces and positions.")
 
     # print some information
-    print 'temperature = {:f} K'.format(float(temp))
-    print
-    print 'number of beads = {:d}'.format(nbeads)
-    print
-    print 'positions and forces file names:'
+    print('temperature = {:f} K'.format(float(temp)))
+    print()
+    print('number of beads = {:d}'.format(nbeads))
+    print()
+    print('positions and forces file names:')
     for fn_pos, fn_for in zip(fns_pos, fns_for):
-        print '{:s}   {:s}'.format(fn_pos, fn_for)
-    print
-    print 'potential energy file: {:s}'.format(fns_iU)
-    print
-    print 'output file name:'
-    print fn_out_en
-    print
+        print('{:s}   {:s}'.format(fn_pos, fn_for))
+    print()
+    print('potential energy file: {:s}'.format(fns_iU))
+    print()
+    print('output file name:')
+    print(fn_out_en)
+    print()
 
     # open input and output files
     ipos = [open(fn, "r") for fn in fns_pos]
@@ -116,7 +117,7 @@ def totalEnergy(prefix, temp, ss=0, unit=''):
     while True:  # Reading input files and calculating PPI correction
 
         if ifr % 100 == 0:
-            print '\rProcessing frame {:d}'.format(ifr),
+            print('\rProcessing frame {:d}'.format(ifr), end=' ')
             sys.stdout.flush()
 
         try:

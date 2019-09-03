@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 
 from ipi.utils.messages import verbosity, info
@@ -328,9 +329,9 @@ def get_imvector(h, m3):
 def print_instanton_geo(prefix, step, nbeads, natoms, names, q, pots, cell, shift, output_maker):
 
     outfile = output_maker.get_output(prefix + '_' + str(step) + '.ener', 'w')
-    print >> outfile, ('#Bead    Energy (eV)')
+    print(('#Bead    Energy (eV)'), file=outfile)
     for i in range(nbeads):
-        print >> outfile, (str(i) + '     ' + str(units.unit_to_user('energy', "electronvolt", pots[i] - shift)))
+        print((str(i) + '     ' + str(units.unit_to_user('energy', "electronvolt", pots[i] - shift))), file=outfile)
     outfile.close()
 
     # print_file("xyz", pos[0], cell, out, title='positions{angstrom}')
@@ -340,15 +341,15 @@ def print_instanton_geo(prefix, step, nbeads, natoms, names, q, pots, cell, shif
 
     outfile = output_maker.get_output(prefix + '_' + str(step) + '.xyz', 'w')
     for i in range(nbeads):
-        print >> outfile, natoms
+        print(natoms, file=outfile)
 
-        print >> outfile, ('CELL(abcABC):  %f %f %f %f %f %f cell{atomic_unit}  Traj: positions{%s}   Bead:       %i' % (a, b, c, alpha, beta, gamma, unit, i))
+        print(('CELL(abcABC):  %f %f %f %f %f %f cell{atomic_unit}  Traj: positions{%s}   Bead:       %i' % (a, b, c, alpha, beta, gamma, unit, i)), file=outfile)
 
         for j in range(natoms):
-            print >> outfile, names[j], \
+            print(names[j], \
                 str(units.unit_to_user('length', unit, q[i, 3 * j])), \
                 str(units.unit_to_user('length', unit, q[i, 3 * j + 1])), \
-                str(units.unit_to_user('length', unit, q[i, 3 * j + 2]))
+                str(units.unit_to_user('length', unit, q[i, 3 * j + 2])), file=outfile)
 
     outfile.close()
 

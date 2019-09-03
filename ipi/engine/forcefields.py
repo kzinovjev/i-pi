@@ -3,6 +3,7 @@
 ForceField objects are force providers, i.e. they are the abstraction
 layer for a driver that gets positions and returns forces (and energy).
 """
+from __future__ import print_function
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
@@ -215,8 +216,8 @@ class ForceField(dobject):
                 try:
                     self.requests.remove(request)
                 except ValueError:
-                    print "failed removing request", id(request), ' ',
-                    print [id(r) for r in self.requests], "@", threading.currentThread()
+                    print("failed removing request", id(request), ' ', end=' ')
+                    print([id(r) for r in self.requests], "@", threading.currentThread())
                     raise
 
     def stop(self):

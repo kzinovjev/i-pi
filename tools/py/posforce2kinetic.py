@@ -13,6 +13,7 @@ prefix.pos_*.xyz and prefix.for_*.xyz naming scheme.
 Syntax:
    posforce2kinetic.py prefix temperature[K]
 """
+from __future__ import print_function
 
 
 import numpy as np
@@ -37,23 +38,23 @@ def main(prefix, temp):
     # check that we found the same number of positions and forces files
     nbeads = len(fns_pos)
     if nbeads != len(fns_for):
-        print fns_pos
-        print fns_for
+        print(fns_pos)
+        print(fns_for)
         raise ValueError("Mismatch between number of input files for forces and positions.")
 
     # print some information
-    print 'temperature = {:f} K'.format(T)
-    print
-    print 'number of beads = {:d}'.format(nbeads)
-    print
-    print 'positions and forces file names:'
+    print('temperature = {:f} K'.format(T))
+    print()
+    print('number of beads = {:d}'.format(nbeads))
+    print()
+    print('positions and forces file names:')
     for fn_pos, fn_for in zip(fns_pos, fns_for):
-        print '{:s}   {:s}'.format(fn_pos, fn_for)
-    print
-    print 'output file names:'
-    print fn_out_kin
-    print fn_out_kod
-    print
+        print('{:s}   {:s}'.format(fn_pos, fn_for))
+    print()
+    print('output file names:')
+    print(fn_out_kin)
+    print(fn_out_kod)
+    print()
 
     temp = unit_to_internal("energy", "kelvin", T)
 
@@ -69,7 +70,7 @@ def main(prefix, temp):
 
         # print progress
         if ifr % 100 == 0:
-            print '\rProcessing frame {:d}'.format(ifr),
+            print('\rProcessing frame {:d}'.format(ifr), end=' ')
             sys.stdout.flush()
 
         # load one frame
@@ -116,7 +117,7 @@ def main(prefix, temp):
 
         ifr += 1
 
-    print '\rProcessed {:d} frames.'.format(ifr)
+    print('\rProcessed {:d} frames.'.format(ifr))
 
     ikin.close()
     ikod.close()

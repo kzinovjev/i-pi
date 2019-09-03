@@ -5,6 +5,7 @@ This module has machinery for abstract I/O handling.
 The idea is that the unit conversion is done here. The default is to guess
 units from the file, but it can be overridden.
 """
+from __future__ import print_function
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
@@ -52,13 +53,13 @@ def _get_io_function(mode, io):
             mode = mode_map[mode]
         module = importlib.import_module("ipi.utils.io.backends.io_%s" % mode)
     except ImportError:
-        print "Error: mode %s is not supported." % mode
+        print("Error: mode %s is not supported." % mode)
         sys.exit()
 
     try:
         func = getattr(module, io_map[io] % mode)
     except KeyError:
-        print "Error: io %s is not supported with mode %s." % (io, mode)
+        print("Error: io %s is not supported with mode %s." % (io, mode))
         sys.exit()
 
     return func

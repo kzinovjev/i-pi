@@ -10,6 +10,7 @@ the i-pi main directory must be added to the PYTHONPATH environment variable.
 Syntax:
    geproperty.py propertyfile propertyname [skip]
 """
+from __future__ import print_function
 
 
 import sys
@@ -47,7 +48,7 @@ def main(inputfile, propertyname="potential", skip="0"):
                 warning("Could not find " + propertyname + " in file " + inputfile)
                 raise EOFError
             line = line.split()
-            if (step >= skip): print line[icol]
+            if (step >= skip): print(line[icol])
             step += 1
         except EOFError:
             break

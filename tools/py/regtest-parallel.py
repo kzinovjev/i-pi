@@ -87,6 +87,7 @@ This approach creates two queues: the tasks queued on QUEUE_ALL will be run
 in parallel while the tasks queued on QUEUE_COM will be run in serial.
 
 """
+from __future__ import print_function
 
 
 import argparse
@@ -174,7 +175,7 @@ def main():
         QUEUE_ALL.put(test_obj)
         index += 10
 
-    print 'Starting tests'
+    print('Starting tests')
     running_test = []
     running_com = []
     if int(_parser()['nproc']) > 1:
@@ -225,7 +226,7 @@ def main():
         for _thr in running_test:
             _thr.die = True
 
-    print
+    print()
 
 
 def _parser():
@@ -343,9 +344,9 @@ def _build_test_index(root_path, tests):
                 msg += ' > ' + str(os.path.split(root)[1]) + '\n'
 
     if len(test_list) < 1:
-        print "**No test found!**"
+        print("**No test found!**")
     else:
-        print msg
+        print(msg)
 
     return test_list
 
@@ -359,7 +360,7 @@ def _file_is_test(path_to_test):
 
     with open(path_to_test) as _file:
         _text = _file.read()
-    print _text[:100]
+    print(_text[:100])
     return len([x.group(1) for x in REGTEST_STRING_RGX.finditer(_text)]) > 0
 
 
@@ -654,7 +655,7 @@ class Test(threading.Thread):
                         remove_file(straj['old_filename'])
                         shutil.copy2(straj['new_filename'],
                                      straj['old_filename'])
-            except IOError, e:
+            except IOError as e:
                 self.test_status = 'ERROR'
                 self.msg += 'Error while copying the new reference!!\n'
                 self.msg += "Unable to copy file. %s" % e

@@ -3,6 +3,7 @@
 Holds classes to deal with the output of different properties, trajectories
 and the restart files.
 """
+from __future__ import print_function
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
@@ -162,7 +163,7 @@ class PropertyOutput(BaseOutput):
         for what in self.outlist:
             key = getkey(what)
             if not key in system.properties.property_dict.keys():
-                print "Computable properties list: ", system.properties.property_dict.keys()
+                print("Computable properties list: ", system.properties.property_dict.keys())
                 raise KeyError(key + " is not a recognized property")
 
         super(PropertyOutput,self).bind(mode)
@@ -286,7 +287,7 @@ class TrajectoryOutput(BaseOutput):
         # Checks as soon as possible if some asked-for trajs are missing or mispelled
         key = getkey(self.what)
         if not key in self.system.trajs.traj_dict.keys():
-            print "Computable trajectories list: ", self.system.trajs.traj_dict.keys()
+            print("Computable trajectories list: ", self.system.trajs.traj_dict.keys())
             raise KeyError(key + " is not a recognized output trajectory")
 
         super(TrajectoryOutput,self).bind( mode)

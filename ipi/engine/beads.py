@@ -5,6 +5,7 @@ momenta and kinetic energy. Has different objects for the position and normal
 mode representations, and has a special centroid atoms object for when the
 centroid coordinate is required.
 """
+from __future__ import print_function
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
@@ -233,7 +234,7 @@ class Beads(dobject):
             else:
                 dq = q[b, :] - q[self.nbeads - 1, :]
             epath += np.dot(dq, m * dq)
-        print "WARNING: RETURNS AN INCORRECT RESULT IF OPEN PATHS ARE BEING USED. CALL NM.VSPRING INSTEAD!!"
+        print("WARNING: RETURNS AN INCORRECT RESULT IF OPEN PATHS ARE BEING USED. CALL NM.VSPRING INSTEAD!!")
         return epath * 0.5
 
     def get_fpath(self):

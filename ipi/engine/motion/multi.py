@@ -1,5 +1,6 @@
 """TODO
 """
+from __future__ import print_function
 
 # This file is part of i-PI.
 # i-PI Copyright (C) 2014-2015 i-PI developers
@@ -27,7 +28,7 @@ class MultiMotion(Motion):
         self.mlist = motionlist
         for m in self.mlist:
             dd(m).dt.add_dependant(dself.dt)
-            print dd(m).dt._dependants
+            print(dd(m).dt._dependants)
         a = self.dt  # DON'T ASK WHY BUT IF YOU DON'T DO THAT WEAKREFS TO SELF.DT WILL BE INVALIDATED
 
         self.fixatoms = set(self.mlist[0].fixatoms)
