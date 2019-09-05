@@ -1089,7 +1089,7 @@ class Forces(dobject):
             exit()
 
         # this evaluates the square forces contribution to the SC potential (only the difference with the Trotter potential is returned)
-        return self.coeffsc_part_1.T * dstrip(self.pots) + self.coeffsc_part_2.T * np.sum(old_div(dstrip(self.f), self.beads.m3 * dstrip(self.f)), axis=1)
+        return self.coeffsc_part_1.T * dstrip(self.pots) + self.coeffsc_part_2.T * np.sum(old_div(dstrip(self.f), self.beads.m3) * dstrip(self.f), axis=1)
 
     def get_fsc_part_1(self):
         """Obtains the linear component of Suzuki-Chin correction to the force."""
@@ -1129,6 +1129,6 @@ class Forces(dobject):
         """Obtains the coefficients of the linear part of the Suzuki-Chin correction."""
 
         rc = np.zeros(self.beads.nbeads)
-        rc[0::2] = (old_div(self.alpha, self.omegan2 / 9.0))
-        rc[1::2] = (old_div((1.0 - self.alpha), self.omegan2 / 9.0))
+        rc[0::2] = (old_div(self.alpha, self.omegan2 * 9.0))
+        rc[1::2] = (old_div((1.0 - self.alpha), self.omegan2 * 9.0))
         return np.asmatrix(rc).T

@@ -433,9 +433,9 @@ class ThermoSVR(Thermostat):
         else:
             rg = 2.0 * self.prng.gamma(old_div((self.ndof - 2), 2)) + self.prng.g**2
 
-        alpha2 = self.et + old_div(self.K, K * (1 - self.et) * (r1**2 + rg)) + 2.0 * r1 * np.sqrt(old_div(self.K, K * self.et * (1 - self.et)))
+        alpha2 = self.et + old_div(self.K, K) * (1 - self.et) * (r1**2 + rg) + 2.0 * r1 * np.sqrt(old_div(self.K, K) * self.et * (1 - self.et))
         alpha = np.sqrt(alpha2)
-        if (r1 + np.sqrt(old_div(2 * K, self.K * self.et / (1 - self.et)))) < 0:
+        if (r1 + np.sqrt(old_div(2 * K, self.K) * self.et / (1 - self.et))) < 0:
             alpha *= -1
 
         self.ethermo += K * (1 - alpha2)
@@ -995,7 +995,7 @@ class ThermoCL(Thermostat):
 
         if self.apat > 0 and self.idstep and ((self.intau != 0) ^ (self.idtau != 0)):
             ekin = np.dot(dstrip(self.p), old_div(dstrip(self.p), dstrip(self.m))) * 0.5
-            mytemp = old_div(ekin, Constants.kb / self.ndof * 2)
+            mytemp = old_div(ekin, Constants.kb) / self.ndof * 2
 
             if self.intau != 0:
                 if mytemp != 0: self.intau /= (old_div(mytemp, self.temp))**(old_div(self.dt, self.apat))

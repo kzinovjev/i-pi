@@ -923,7 +923,7 @@ class Properties(dobject):
             k = 3 * i
             for b in range(0, self.beads.nbeads, 2):
                 kcv += (q[b, k] - qc[k]) * f[b, k] + (q[b, k + 1] - qc[k + 1]) * f[b, k + 1] + (q[b, k + 2] - qc[k + 2]) * f[b, k + 2]
-            kcv *= old_div(-0.5, self.beads.nbeads * 2.0)
+            kcv *= old_div(-0.5, self.beads.nbeads) * 2.0
             kcv += 1.5 * Constants.kb * self.ensemble.temp
             acv += kcv
             ncount += 1
@@ -982,9 +982,9 @@ class Properties(dobject):
             for b in range(self.beads.nbeads):
                 kcv += (q[b, k] - qc[k]) * (f + fsc)[b, k] + (q[b, k + 1] - qc[k + 1]) * (f + fsc)[b, k + 1] + (q[b, k + 2] - qc[k + 2]) * (f + fsc)[b, k + 2]
                 if b % 2 == 0:
-                    kcv -= 2 * (old_div(self.forces.alpha, self.forces.omegan2 / 9.0)) * (old_div(f[b, k] * f[b, k], self.forces.beads.m3[b, k]) + old_div(f[b, k + 1] * f[b, k + 1], self.forces.beads.m3[b, k + 1]) + old_div(f[b, k + 2] * f[b, k + 2], self.forces.beads.m3[b, k + 2]))
+                    kcv -= 2 * (old_div(self.forces.alpha, self.forces.omegan2) / 9.0) * (old_div(f[b, k] * f[b, k], self.forces.beads.m3[b, k]) + old_div(f[b, k + 1] * f[b, k + 1], self.forces.beads.m3[b, k + 1]) + old_div(f[b, k + 2] * f[b, k + 2], self.forces.beads.m3[b, k + 2]))
                 else:
-                    kcv -= 2 * (old_div((1.0 - self.forces.alpha), self.forces.omegan2 / 9.0)) * (old_div(f[b, k] * f[b, k], self.forces.beads.m3[b, k]) + old_div(f[b, k + 1] * f[b, k + 1], self.forces.beads.m3[b, k + 1]) + old_div(f[b, k + 2] * f[b, k + 2], self.forces.beads.m3[b, k + 2]))
+                    kcv -= 2 * (old_div((1.0 - self.forces.alpha), self.forces.omegan2) / 9.0) * (old_div(f[b, k] * f[b, k], self.forces.beads.m3[b, k]) + old_div(f[b, k + 1] * f[b, k + 1], self.forces.beads.m3[b, k + 1]) + old_div(f[b, k + 2] * f[b, k + 2], self.forces.beads.m3[b, k + 2]))
             kcv *= old_div(-0.5, self.beads.nbeads)
             kcv += 1.5 * Constants.kb * self.ensemble.temp
             acv += kcv
@@ -1426,8 +1426,8 @@ class Properties(dobject):
         self.dcell.h = self.cell.h
         self.dbeads.q[::2] = self.beads.q[::2] + eps * (q - qc)[::2]
 
-        vir1 = old_div(np.dot(((q - qc)[::2]).flatten(), (self.forces.f[::2]).flatten()), self.beads.nbeads * 2.0)
-        vir2 = old_div(np.dot(((q - qc)[::2]).flatten(), old_div(((self.dforces.f - self.forces.f)[::2]).flatten(), eps)), self.beads.nbeads * 2.0)
+        vir1 = old_div(np.dot(((q - qc)[::2]).flatten(), (self.forces.f[::2]).flatten()), self.beads.nbeads) * 2.0
+        vir2 = old_div(np.dot(((q - qc)[::2]).flatten(), old_div(((self.dforces.f - self.forces.f)[::2]).flatten(), eps)), self.beads.nbeads) * 2.0
 
         eop = 1.5 * self.beads.natoms / beta - (0.50 * vir1) + np.mean(self.forces.pots[::2])
 
@@ -1935,14 +1935,14 @@ class Properties(dobject):
             for b in range(1, self.beads.nbeads, 2):
                 for j in range(3 * i, 3 * (i + 1)):
                     chin += (f[b, j]**2)
-            chin *= old_div((1.0 / alpha - 1.0) * 1.0, self.beads.m[i] * (4.0 / 3.0) * (1.0 / 12.0) / self.nm.omegan2)
+            chin *= old_div((1.0 / alpha - 1.0) * 1.0, self.beads.m[i]) * (4.0 / 3.0) * (1.0 / 12.0) / self.nm.omegan2
 
             # Takahashi-Imada correction
             ti = 0.0
             for b in range(self.beads.nbeads):
                 for j in range(3 * i, 3 * (i + 1)):
                     ti += (f[b, j]**2)
-            ti *= old_div((1.0 / alpha - 1.0) * 1.0, self.beads.m[i] * (1.0 / 24.0) / self.nm.omegan2)
+            ti *= old_div((1.0 / alpha - 1.0) * 1.0, self.beads.m[i]) * (1.0 / 24.0) / self.nm.omegan2
 
             td = spr
             td2 = td * td
@@ -2147,7 +2147,7 @@ class Properties(dobject):
 
             ncount += 1
 
-        ti *= old_div((1.0 / 24.0), self.nm.omegan2 / self.beads.nbeads)
+        ti *= old_div((1.0 / 24.0), self.nm.omegan2) / self.beads.nbeads
         if ncount == 0:
             warning("Couldn't find an atom which matched the argument of TI potential, setting to zero.", verbosity.medium)
 

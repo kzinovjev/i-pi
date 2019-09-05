@@ -593,7 +593,7 @@ class BaroSCBZP(Barostat):
 
         # integrates with respect to the "high order" part of the stress with a timestep of dt /2
         press = np.trace(self.stress_sc) / 3.0
-        self.p += old_div(self.dt, 2 * 3.0 * (self.cell.V * press))
+        self.p += old_div(self.dt, 2) * 3.0 * (self.cell.V * press)
 
     def pstep(self, level=0):
         """Propagates the momentum of the barostat."""
