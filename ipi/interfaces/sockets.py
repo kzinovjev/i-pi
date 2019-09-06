@@ -19,7 +19,6 @@ import sys
 import os
 import socket
 import select
-import string
 import time
 import threading
 
@@ -42,7 +41,7 @@ NTIMEOUT = 20
 def Message(mystr):
     """Returns a header of standard length HDRLEN."""
 
-    return string.ljust(string.upper(mystr), HDRLEN)
+    return bytes(str.ljust(str.upper(mystr), HDRLEN),'ascii')
 
 
 class Disconnected(Exception):
@@ -118,12 +117,17 @@ class DriverSocket(socket.socket):
            socket: A socket through which the communication should be done.
         """
 
-        super(DriverSocket, self).__init__(_sock=socket)
+        super(DriverSocket, self).__init__(fileno=socket.fileno())
         self._buf = np.zeros(0, np.byte)
         if socket:
             self.peername = self.getpeername()
         else:
             self.peername = "no_socket"
+
+    def sendall(self, msg): # intercepts the call!
+
+        print("sending ", msg)
+        super(DriverSocket, self).sendall(msg)
 
     def send_msg(self, msg):
         """Send the next message through the socket.
