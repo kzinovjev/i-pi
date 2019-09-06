@@ -51,7 +51,6 @@ def getkey(pstring):
     pu = pstring.find('{')
     if pu < 0:
         pu = len(pstring)
-    print (pstring[0:min(pa, pu)].strip())
     return pstring[0:min(pa, pu)].strip()
 
 
@@ -1454,6 +1453,7 @@ class Properties(dobject):
            scaled down automatically to avoid discontinuities in the potential.
         """
 
+        fd_delta = float(fd_delta)
         dbeta = abs(float(fd_delta))
         beta = 1.0 / (Constants.kb * self.ensemble.temp)
         self.dcell.h = self.cell.h
@@ -1471,8 +1471,6 @@ class Properties(dobject):
             for b in range(self.beads.nbeads):
                 self.dbeads[b].q = qc * (1.0 - sminus) + sminus * q[b, :]
             vminus = old_div(self.dforces.pot, self.beads.nbeads)
-
-            # print "DISPLACEMENT CHECK YAMA db: %e, d+: %e, d-: %e, dd: %e" %(dbeta, (vplus-v0)*dbeta, (v0-vminus)*dbeta, abs((vplus+vminus-2*v0)/(vplus-vminus)))
 
             if (fd_delta < 0 and abs(old_div((vplus + vminus - 2 * v0), (vplus - vminus))) > self._DEFAULT_FDERROR and dbeta > self._DEFAULT_MINFID):
                 if dbeta > self._DEFAULT_MINFID:
@@ -1513,6 +1511,7 @@ class Properties(dobject):
         """
 
         dbeta = abs(float(fd_delta))
+        fd_delta = float(fd_delta)
         beta = 1.0 / (Constants.kb * self.ensemble.temp)
         self.dforces.omegan2 = self.forces.omegan2
         self.dforces.alpha = self.forces.alpha

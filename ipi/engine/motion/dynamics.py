@@ -347,7 +347,6 @@ class NVEIntegrator(DummyIntegrator):
 
         # halfdt/alpha
         self.beads.p += self.forces.forces_mts(level) * self.pdt[level]
-        print (self.beads.p, self.forces.forces_mts(level), self.pdt[level], self.beads.q, self.qdt)
         if level == 0:  # adds bias in the outer loop
             self.beads.p += dstrip(self.bias.f) * self.pdt[level]
 

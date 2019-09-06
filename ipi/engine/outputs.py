@@ -150,6 +150,7 @@ class PropertyOutput(BaseOutput):
         if outlist is None:
             outlist = np.zeros(0, np.dtype('|S1024'))
         self.outlist = np.asarray(outlist, np.dtype('|S1024'))
+        print (self.outlist)
         self.stride = stride
         self.flush = flush
         self.nout = 0
@@ -181,6 +182,7 @@ class PropertyOutput(BaseOutput):
             ohead = "# "
             key = getkey(what)
             prop = self.system.properties.property_dict[key]
+            print ("%s" % key)
 
             if "size" in prop and prop["size"] > 1:
                 ohead += "cols.  %3d-%-3d" % (icol, icol + prop["size"] - 1)
@@ -188,7 +190,8 @@ class PropertyOutput(BaseOutput):
             else:
                 ohead += "column %3d    " % (icol)
                 icol += 1
-            ohead += " --> %s " % (what)
+            ohead += " --> %s " % (what.decode('utf-8'))
+            print (ohead)
             if "help" in prop:
                 ohead += ": " + prop["help"]
             self.out.write(ohead + "\n")
