@@ -830,7 +830,7 @@ class Forces(dobject):
         # calculates the finite displacement.
         fbase = dstrip(self.f)
         eps = self.mforces[index].epsilon
-        delta = old_div(np.abs(eps), np.sqrt(old_div((old_div(fbase, self.beads.m3 * fbase / self.beads.m3)).sum(), (self.nbeads * self.natoms))))
+        delta = np.abs(eps) / np.sqrt((fbase / self.beads.m3 * fbase / self.beads.m3).sum() / (self.nbeads * self.natoms))
         dq = old_div(delta * fbase, self.beads.m3)
 
         # stores the force component.

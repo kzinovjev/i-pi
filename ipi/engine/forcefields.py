@@ -715,6 +715,7 @@ class FFYaff(ForceField):
             raise ValueError("Must provide a Yaff system file.")
 
         self.yaffpara = yaffpara
+        print (yaffpara, yaffsys, type(yaffsys))
         self.yaffsys = yaffsys
         self.rcut = rcut
         self.alpha_scale = alpha_scale
