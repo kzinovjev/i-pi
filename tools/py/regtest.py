@@ -336,6 +336,8 @@ class TestInstance(object):
 
             if ipi_proc.poll() is not None:
                 stdout, stderr = ipi_proc.communicate()
+                if stdout is not None: stdout = stdout.encode('ascii')
+                if stderr is not None: stderr = stderr.encode('ascii')
                 raise IPIError('I-PI error on start\n' + stderr)
 
             # Run the driver code
@@ -373,6 +375,8 @@ class TestInstance(object):
                 else:
                     driver_return_codes.append(prc.returncode)
                     stdout, stderr = prc.communicate()
+                    if stdout is not None: stdout = stdout.encode('ascii')
+                    if stderr is not None: stderr = stderr.encode('ascii')
                     if stderr:
                         driver_errors.append(stderr)
                 time_elapsed = time.time() - driver_init_time
@@ -382,6 +386,8 @@ class TestInstance(object):
                             prc.terminate()
                     ipi_proc.terminate()
                     stdout, stderr = ipi_proc.communicate()
+                    if stdout is not None: stdout = stdout.encode('ascii')
+                    if stderr is not None: stderr = stderr.encode('ascii')
                     if stderr:
                         with open(ipi_output_path, 'a') as ipi_out:
                             ipi_out.write(stderr)
@@ -395,6 +401,8 @@ class TestInstance(object):
                 if time_elapsed_after_drivers > Parameters.ipi_shutdown_time:
                     ipi_proc.terminate()
                     stdout, stderr = ipi_proc.communicate()
+                    if stdout is not None: stdout = stdout.encode('ascii')
+                    if stderr is not None: stderr = stderr.encode('ascii')
                     if stderr:
                         with open(ipi_output_path, 'a') as ipi_out:
                             ipi_out.write(stderr)
@@ -405,6 +413,8 @@ class TestInstance(object):
                                          'Driver errors:' + '\n'.join(driver_errors) + '\n')
 
             stdout, stderr = ipi_proc.communicate()
+            if stdout is not None: stdout = stdout.encode('ascii')
+            if stderr is not None: stderr = stderr.encode('ascii')
             if stderr:
                 with open(ipi_output_path, 'a') as ipi_out:
                     ipi_out.write(stderr)
@@ -418,6 +428,8 @@ class TestInstance(object):
                 time.sleep(Parameters.ipi_starting_time)
                 ipi_proc.terminate()
                 stdout, stderr = ipi_proc.communicate()
+                if stdout is not None: stdout = stdout.encode('ascii')
+                if stderr is not None: stderr = stderr.encode('ascii')
                 if stderr:
                     with open(ipi_output_path, 'a') as ipi_out:
                         ipi_out.write(stderr)
