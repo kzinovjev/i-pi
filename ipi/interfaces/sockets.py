@@ -17,6 +17,7 @@ from past.utils import old_div
 from builtins import object
 import sys
 import os
+import struct
 import socket
 import select
 import time
@@ -110,24 +111,22 @@ class DriverSocket(socket.socket):
        _buf: A string buffer to hold the reply from the other connection.
     """
 
-    def __init__(self, socket):
+    def __init__(self, sock):
         """Initialises DriverSocket.
 
         Args:
            socket: A socket through which the communication should be done.
         """
 
-        super(DriverSocket, self).__init__(fileno=socket.fileno())
+
+        super(DriverSocket, self).__init__(sock.family, sock.type, sock.proto,
+                        fileno=socket.dup(sock.fileno()))
+        self.settimeout(sock.gettimeout())
         self._buf = np.zeros(0, np.byte)
         if socket:
             self.peername = self.getpeername()
         else:
             self.peername = "no_socket"
-
-    def sendall(self, msg): # intercepts the call!
-
-        print("sending ", msg)
-        super(DriverSocket, self).sendall(msg)
 
     def send_msg(self, msg):
         """Send the next message through the socket.
@@ -221,14 +220,14 @@ class Driver(DriverSocket):
        locked: Flag to mark if the client has been working consistently on one image.
     """
 
-    def __init__(self, socket):
+    def __init__(self, sock):
         """Initialises Driver.
 
         Args:
            socket: A socket through which the communication should be done.
         """
 
-        super(Driver, self).__init__(socket=socket)
+        super(Driver, self).__init__(sock)
         self.waitstatus = False
         self.status = Status.Up
         self.lastreq = None
@@ -264,10 +263,10 @@ class Driver(DriverSocket):
             reply = self.recv(HDRLEN)
             self.waitstatus = False  # got some kind of reply
         except socket.timeout:
-            warning(" @SOCKET:   Timeout in status recv!", verbosity.trace)
+            warning(" @SOCKET:   Timeout in status recv!", verbosity.debug)
             return Status.Up | Status.Busy | Status.Timeout
         except:
-            warning(" @SOCKET:   Other socket exception. Disconnecting client and trying to carry on.", verbosity.trace)
+            warning(" @SOCKET:   Other socket exception. Disconnecting client and trying to carry on.", verbosity.debug)
             return Status.Disconnected
 
         if not len(reply) == HDRLEN:
@@ -285,6 +284,7 @@ class Driver(DriverSocket):
     def get_status(self):
         """ Sets (and returns) the client internal status. Wait for an answer if
             the client is busy. """
+
         status = self._getstatus()
         while status & Status.Busy:
             status = self._getstatus()
@@ -392,7 +392,7 @@ class Driver(DriverSocket):
         if mlen > 0:
             mxtra = np.zeros(mlen, np.character)
             mxtra = self.recvall(mxtra)
-            mxtra = "".join(mxtra)
+            mxtra = bytearray(mxtra).decode("utf-8")
         else:
             mxtra = ""
 
