@@ -48,7 +48,7 @@ def print_pdb_path(beads, cell, filedesc=sys.stdout, cell_conv=1.0, atoms_conv=1
     for j in range(nbeads):
         for i in range(natoms):
             qs = dstrip(beads.q) * atoms_conv
-            lab = dstrip(beads.names)
+            lab = [x.decode('ascii') for x in dstrip(beads.names)]
             data = (j * natoms + i + 1, lab[i], ' ', '  1', ' ', 1, ' ',
                     qs[j][3 * i], qs[j][3 * i + 1], qs[j][3 * i + 2], 0.0, 0.0, '  ', 0)
             filedesc.write(fmt_atom % data)
@@ -90,6 +90,7 @@ def print_pdb(atoms, cell, filedesc=sys.stdout, title="", cell_conv=1.0, atoms_c
     natoms = atoms.natoms
     qs = dstrip(atoms.q) * atoms_conv
     lab = dstrip(atoms.names)
+    lab = [x.decode('ascii') for x in dstrip(atoms.names)]
     for i in range(natoms):
         data = (i + 1, lab[i], ' ', '  1', ' ', 1, ' ',
                 qs[3 * i], qs[3 * i + 1], qs[3 * i + 2], 0.0, 0.0, '  ', 0)
@@ -156,5 +157,4 @@ def read_pdb(filedesc):
         qatoms.append(z)
 
         body = filedesc.readline()
-
     return comment, cell, np.asarray(qatoms), np.asarray(names, dtype='|S4'), np.asarray(masses)

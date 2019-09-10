@@ -66,7 +66,7 @@ def print_xyz(atoms, cell, filedesc=sys.stdout, title="", cell_conv=1.0, atoms_c
     filedesc.write(fmt_header % (natoms, a, b, c, alpha, beta, gamma, title))
     # direct access to avoid unnecessary slow-down
     qs = dstrip(atoms.q) * atoms_conv
-    lab = dstrip(atoms.names)
+    lab = [x.decode('ascii') for x in dstrip(atoms.names)]
     for i in range(natoms):
         filedesc.write("%8s %12.5e %12.5e %12.5e\n" % (lab[i], qs[3 * i], qs[3 * i + 1], qs[3 * i + 2]))
 
@@ -125,7 +125,7 @@ def read_xyz(filedesc):
     atom_counter = 0
     for iat, line in enumerate(filedesc):
         body = line.split()
-        names[iat], masses[iat] = body[0], Elements.mass(body[0])
+        names[iat], masses[iat] = body[0].decode('ascii'), Elements.mass(body[0])
         x, y, z = float(body[1]), float(body[2]), float(body[3])
 
         if usegenh:
@@ -142,4 +142,5 @@ def read_xyz(filedesc):
 
     if natoms != len(names):
         raise ValueError("The number of atom records does not match the header of the xyz file.")
+
     return comment, cell, qatoms, names, masses

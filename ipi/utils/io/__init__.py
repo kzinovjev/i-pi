@@ -173,6 +173,7 @@ def read_file_raw(mode, filedesc):
     reader = _get_io_function(mode, "read")
 
     comment, cell, atoms, names, masses = reader(filedesc=filedesc)
+    names = [n.decode('ascii') for n in names]
 
     return {
         "comment": comment,
