@@ -125,7 +125,7 @@ def read_xyz(filedesc):
     atom_counter = 0
     for iat, line in enumerate(filedesc):
         body = line.split()
-        names[iat], masses[iat] = body[0].decode('ascii'), Elements.mass(body[0])
+        names[iat], masses[iat] = body[0], Elements.mass(body[0])
         x, y, z = float(body[1]), float(body[2]), float(body[3])
 
         if usegenh:
