@@ -202,7 +202,7 @@ class Barostat(dobject):
         # NOTE: In order to have a well-defined conserved quantity, the Nf kT term in the
         # diagonal stress estimator must be taken from the centroid kinetic energy.
         for i in range(3):
-            kst[i, i] += np.dot(pc[i:na3:3], old_div(pc[i:na3:3], m)) * self.beads.nbeads
+            kst[i, i] += np.dot(pc[i:na3:3], pc[i:na3:3] / m) * self.beads.nbeads
 
         return kst
 
@@ -231,7 +231,7 @@ class Barostat(dobject):
 
         if(level == self.nmtslevels - 1):
             for i in range(3):
-                kst[i, i] += np.dot(pc[i:na3:3], old_div(pc[i:na3:3], m)) * self.beads.nbeads
+                kst[i, i] += np.dot(pc[i:na3:3], pc[i:na3:3] / m) * self.beads.nbeads
 
         return kst
 
@@ -260,7 +260,7 @@ class Barostat(dobject):
 
         if(level == self.nmtslevels - 1):
             for i in range(3):
-                kst[i, i] += np.dot(pc[i:na3:3], old_div(pc[i:na3:3], m)) * self.beads.nbeads
+                kst[i, i] += np.dot(pc[i:na3:3], pc[i:na3:3] / m) * self.beads.nbeads
 
         return kst
 
@@ -292,11 +292,11 @@ class Barostat(dobject):
         if self.bias != None:
             bvir[:] = self.bias.vir
 
-        return old_div((self.kstress + self.forces.virs + bvir), self.cell.V)
+        return (self.kstress + self.forces.virs + bvir) / self.cell.V
 
     def get_stress_sc(self):
         """Calculates the high order part of the Suzuki-Chin internal stress tensor."""
-        return old_div((self.kstress_sc + np.sum(dstrip(self.forces.virssc_part_2), axis=0)), self.cell.V)
+        return (self.kstress_sc + np.sum(dstrip(self.forces.virssc_part_2), axis=0)) / self.cell.V
 
     def stress_mts_sc(self, level):
         """Calculates the internal Suzuki-Chin stress tensor
@@ -307,7 +307,7 @@ class Barostat(dobject):
         if (self.bias != None and level == 0):
             bvir[:] = self.bias.vir
 
-        return old_div((self.kstress_mts_sc(level) + np.sum(self.forces.virs_mts(level) * (1 + self.forces.coeffsc_part_1).reshape((self.beads.nbeads, 1, 1)), axis=0) + bvir), self.cell.V)
+        return (self.kstress_mts_sc(level) + np.sum(self.forces.virs_mts(level) * (1 + self.forces.coeffsc_part_1).reshape((self.beads.nbeads, 1, 1)), axis=0) + bvir) / self.cell.V
 
     def stress_mts(self, level):
         """Calculates the internal stress tensor
@@ -318,7 +318,7 @@ class Barostat(dobject):
         if (self.bias != None and level == 0):
             bvir[:] = self.bias.vir
 
-        return old_div((self.kstress_mts(level) + self.forces.vir_mts(level) + bvir), self.cell.V)
+        return (self.kstress_mts(level) + self.forces.vir_mts(level) + bvir) / self.cell.V
 
     def pstep(self, alpha=1.0):
         """Dummy momenta propagator step."""
@@ -458,22 +458,22 @@ class BaroBZP(Barostat):
             self.p += dt * 3.0 * (self.cell.V * (press - self.beads.nbeads * self.pext) + Constants.kb * self.temp)
 
             pc = dstrip(self.beads.pc)
-            fc = old_div(np.sum(dstrip(self.forces.forces_mts(level)), axis=0), self.beads.nbeads)
+            fc = np.sum(dstrip(self.forces.forces_mts(level)), axis=0) / self.beads.nbeads
             m = dstrip(self.beads.m3)[0]
 
-            self.p += (dt2 * np.dot(pc, old_div(fc, m)) + dt3 * np.dot(fc, old_div(fc, m))) * self.beads.nbeads
+            self.p += (dt2 * np.dot(pc, fc / m) + dt3 * np.dot(fc, fc / m)) * self.beads.nbeads
 
     def qcstep(self):
         """Propagates the centroid position and momentum and the volume."""
 
-        v = old_div(self.p[0], self.m[0])
+        v = self.p[0] / self.m[0]
         halfdt = self.qdt  # this is set to half the inner loop in all integrators that use a barostat
         expq, expp = (np.exp(v * halfdt), np.exp(-v * halfdt))
 
         m = dstrip(self.beads.m3)[0]
 
         self.nm.qnm[0, :] *= expq
-        self.nm.qnm[0, :] += (old_div((expq - expp), (2.0 * v))) * (old_div(dstrip(self.nm.pnm)[0, :], m))
+        self.nm.qnm[0, :] += ((expq - expp) / (2.0 * v)) * (dstrip(self.nm.pnm)[0, :] / m)
         self.nm.pnm[0, :] *= expp
 
         self.cell.h *= expq
@@ -593,7 +593,7 @@ class BaroSCBZP(Barostat):
 
         # integrates with respect to the "high order" part of the stress with a timestep of dt /2
         press = np.trace(self.stress_sc) / 3.0
-        self.p += old_div(self.dt, 2) * 3.0 * (self.cell.V * press)
+        self.p += self.dt / 2 * 3.0 * (self.cell.V * press)
 
     def pstep(self, level=0):
         """Propagates the momentum of the barostat."""
@@ -614,22 +614,22 @@ class BaroSCBZP(Barostat):
             press = 0
             self.p += dt * 3.0 * (self.cell.V * (press - self.beads.nbeads * self.pext) + Constants.kb * self.temp)
             pc = dstrip(self.beads.pc)
-            fc = old_div(np.sum(dstrip(self.forces.forces_mts(level)) * (1 + self.forces.coeffsc_part_1), axis=0), self.beads.nbeads)
+            fc = np.sum(dstrip(self.forces.forces_mts(level)) * (1 + self.forces.coeffsc_part_1), axis=0) / self.beads.nbeads
             m = dstrip(self.beads.m3)[0]
 
-            self.p += (dt2 * np.dot(pc, old_div(fc, m)) + dt3 * np.dot(fc, old_div(fc, m))) * self.beads.nbeads
+            self.p += (dt2 * np.dot(pc, fc / m) + dt3 * np.dot(fc, fc / m)) * self.beads.nbeads
 
     def qcstep(self):
         """Propagates the centroid position and momentum and the volume."""
 
-        v = old_div(self.p[0], self.m[0])
+        v = self.p[0] / self.m[0]
         halfdt = self.qdt  # this is set to half the inner loop in all integrators that use a barostat
         expq, expp = (np.exp(v * halfdt), np.exp(-v * halfdt))
 
         m = dstrip(self.beads.m3)[0]
 
         self.nm.qnm[0, :] *= expq
-        self.nm.qnm[0, :] += (old_div((expq - expp), (2.0 * v))) * (old_div(dstrip(self.nm.pnm)[0, :], m))
+        self.nm.qnm[0, :] += ((expq - expp) / (2.0 * v)) * (dstrip(self.nm.pnm)[0, :] / m)
         self.nm.pnm[0, :] *= expp
 
         self.cell.h *= expq
