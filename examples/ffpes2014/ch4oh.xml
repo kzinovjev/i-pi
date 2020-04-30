@@ -1,0 +1,36 @@
+<simulation verbosity="low">
+   <step>0</step>
+   <total_steps>100</total_steps>
+   <prng><seed>12345</seed></prng>
+   <ffpes2014 name='pes2014' pbc='false'>
+   </ffpes2014>
+   <output prefix='results'>
+      <trajectory stride="5" format="xyz" filename="xc" cell_units="angstrom"> x_centroid{angstrom} </trajectory>
+      <trajectory stride="5" format="xyz" filename="pos"> positions{angstrom} </trajectory>      
+      <checkpoint stride="1000" overwrite="false" filename="restart"/>
+   </output>
+   <system>
+      <initialize nbeads='16'> 
+         <file mode='xyz' units='angstrom'>../react.xyz</file>
+         <cell mode='abc' units='angstrom'>
+               [10., 10., 10.]
+         </cell>
+         <velocities mode="thermal" units='kelvin'>300</velocities>
+      </initialize>
+      <forces>
+         <force forcefield='pes2014'/>
+      </forces>
+      <ensemble>
+         <temperature units="kelvin">300</temperature>
+      </ensemble>
+      <motion mode='dynamics'>
+      <dynamics mode='nvt'>
+         <thermostat mode='langevin'>
+           <tau units="femtosecond"> 10 </tau>
+         </thermostat>      
+         <timestep units="femtosecond"> 0.5 </timestep>
+      </dynamics>
+      <fixcom>True</fixcom>
+      </motion>
+   </system>
+</simulation>
