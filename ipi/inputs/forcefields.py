@@ -8,14 +8,14 @@
 from copy import copy
 import numpy as np
 
-from ipi.engine.forcefields import ForceField, FFSocket, FFLennardJones, FFQUIP, FFDebye, FFPlumed, FFYaff, FFsGDML
+from ipi.engine.forcefields import ForceField, FFSocket, FFLennardJones, FFQUIP, FFPES2014, FFDebye, FFPlumed, FFYaff, FFsGDML
 from ipi.interfaces.sockets import InterfaceSocket
 import ipi.engine.initializer
 from ipi.inputs.initializer import *
 from ipi.utils.inputvalue import *
 
 
-__all__ = ["InputFFSocket", 'InputFFLennardJones', 'InputFFQUIP', 'InputFFDebye', 'InputFFPlumed', 'InputFFYaff', 'InputFFsGDML']
+__all__ = ["InputFFSocket", 'InputFFLennardJones', 'InputFFQUIP', 'InputFFPES2014', 'InputFFDebye', 'InputFFPlumed', 'InputFFYaff', 'InputFFsGDML']
 
 
 class InputForceField(Input):
@@ -252,6 +252,24 @@ class InputFFQUIP(InputForceField):
 
         return FFQUIP(init_file=self.init_file.fetch(), args_str=self.args_str.fetch(), param_file=self.param_file.fetch(), name=self.name.fetch(),
                       latency=self.latency.fetch(), dopbc=self.pbc.fetch(), threaded=self.threaded.fetch())
+
+
+class InputFFPES2014(InputForceField):
+    attribs = {}
+    attribs.update(InputForceField.attribs)
+
+    default_help = """PES-2014 potential for CH4+OH reaction
+    Theor Chem Acc (2015) 134:6"""
+    default_label = "FFPES2014"
+
+    def store(self, ff):
+        super(InputFFPES2014, self).store(ff)
+
+    def fetch(self):
+        super(InputFFPES2014, self).fetch()
+
+        return FFPES2014(pars=self.parameters.fetch(), name=self.name.fetch(),
+                         latency=self.latency.fetch(), dopbc=self.pbc.fetch())
 
 
 class InputFFDebye(InputForceField):
